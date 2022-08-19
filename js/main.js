@@ -33,13 +33,13 @@ GameManager.init = function () {
 
   // The game box attributes
   let gameBoxObj = {
-    width: 600,
+    width: 500,
     height: 360,
     depth: 1200,
-    // Number of boxes fitting in the game box.
+    // Number of boxes fitting inside the game box x,y,z axis
     segmentX: 6,
     segmentY: 6,
-    segmentZ: 20,
+    segmentZ: 15,
   };
 
   GameManager.gameBoxObj = gameBoxObj;
