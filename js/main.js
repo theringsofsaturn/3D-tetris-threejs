@@ -1,39 +1,28 @@
-import * as BABYLON from "babylonjs";
-import * as GUI from "babylonjs-gui";
-import { MainGame } from "./MainGame";
+// Global object which will contain all the functions and variables, replicating so, the namespace in JavaScript. An example of anti-pattern, but will do for this small application.
+let GameManager = {};
 
-class App {
-  constructor() {
-    this.canvas = document.getElementById("my-canvas");
-    this.engine = new BABYLON.Engine(this.canvas, true);
-    this.scene = new BABYLON.Scene(this.engine);
-    this.scene.clearColor = new BABYLON.Color4(0, 0, 0, 0);
-    this.scene.ambientColor = new BABYLON.Color3(0.5, 0.5, 0.5);
-    this.scene.fogMode = BABYLON.Scene.FOGMODE_EXP;
-    this.scene.fogDensity = 0.005;
-    this.scene.fogColor = new BABYLON.Color3(0.5, 0.5, 0.5);
-    this.scene.fogStart = 0;
-    this.scene.fogEnd = 100;
-    this.scene.gravity = new BABYLON.Vector3(0, -9.81, 0);
-    this.scene.collisionsEnabled = true;
-    this.scene.workerCollisions = true;
-    this.scene.collisionCoordinator = new BABYLON.CollisionCoordinatorWorker();
-    this.scene.collisionCoordinator.init(this.scene);
-    this.scene.collisionCoordinator.onCollide = function (collider, collided) {
-      if (
-        collider.getClassName() == "BoxMesh" &&
-        collided.getClassName() == "BoxMesh"
-      ) {
-        collider.material.diffuseColor = new BABYLON.Color3(1, 0, 0);
-        collided.material.diffuseColor = new BABYLON.Color3(1, 0, 0);
-      }
-    };
-    this.scene.debugLayer.show();
-    this.scene.debugLayer.showAxis(10);
-    this.scene.debugLayer.showBoundingBoxes = true;
-    this.scene.debugLayer.showPhysicsProperties = true;
-    this.scene.debugLayer.showPhysicsImposters = true;
-  }
-}
+// Create Three.js objects, and store them in the globaj object GameManager.
+GameManager.init = function () {
+  // Fullscreen scene size
+  const width = window.innerWidth; /
+  const height = window.innerHeight;
 
-window.addEventListener("DOMContentLoaded", function () {});
+  // Camera attributes
+  const viewAngle = 45;
+  const aspect = width / height;
+  const near = 0.1;
+  const far = 1000;
+};
+
+// Creating the scene, the camera and the renderer.
+
+GameManager.renderer = new THREE.WebGLRenderer();
+GameManager.renderer.setSize(width, height);
+
+GameManager.scene = new THREE.Scene();
+GameManager.camera = new THREE.PerspectiveCamera(viewAngle, aspect, near, far);
+// Camera starts at (0, 0, 0) looking at (0, 0, -1) with an up vector of (0, 1, 0). So, we pull it back at:
+GameManager.camera.position.z = 600;
+GameManager.scene.add(GameManager.camera);
+
+document.body.appendChild(GameManager.renderer.domElement); // Appending the renderer to the body of the document.
