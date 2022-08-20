@@ -34,17 +34,17 @@ GameManager.init = function () {
   // Adding the camera to the scene.
 
   // Adding some light
-  const ambientLight = new THREE.AmbientLight(0x404040, 10);
+  const ambientLight = new THREE.AmbientLight(0x404040, 1);
   const directionalLight = new THREE.DirectionalLight(0xffffff, 20);
   directionalLight.position.set(0, 1, 0);
   directionalLight.castShadow = true;
   const pointLight = new THREE.PointLight(0xc4c4c4, 2);
   pointLight.position.set(0, 300, 500);
-  const pointLight2 = new THREE.PointLight(0xc4c4c4, 5);
+  const pointLight2 = new THREE.PointLight(0xc4c4c4, 2);
   pointLight2.position.set(500, 100, 0);
-  const pointLight3 = new THREE.PointLight(0xc4c4c4, 5);
+  const pointLight3 = new THREE.PointLight(0xc4c4c4, 2);
   pointLight3.position.set(0, 100, -500);
-  const pointLight4 = new THREE.PointLight(0xc4c4c4, 5);
+  const pointLight4 = new THREE.PointLight(0xc4c4c4, 2);
   pointLight4.position.set(-500, 300, 500);
 
   GameManager.scene.add(
