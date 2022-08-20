@@ -1,6 +1,7 @@
 // import Three.js modules
 import * as THREE from "https://unpkg.com/three@0.126.1/build/three.module.js";
 import { GLTFLoader } from "https://unpkg.com/three@0.126.1/examples/jsm/loaders/GLTFLoader.js";
+import * as gui from "../node_modules/lil-gui/dist/lil-gui.esm.js";
 
 // Global object which will contain all the functions and variables, replicating so, the namespace in JavaScript. An example of anti-pattern, but will do for this small application.
 let GameManager = {};
@@ -34,6 +35,8 @@ GameManager.init = function () {
 
   // Add ambient light
   const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 5);
+
   GameManager.scene.add(ambientLight);
   GameManager.scene.add(GameManager.camera);
 
@@ -83,6 +86,61 @@ GameManager.init = function () {
 
   // Rendering
   GameManager.renderer.render(GameManager.scene, GameManager.camera);
+
+  // gltf loader for loading the model.
+  GameManager.gltfLoader = new GLTFLoader();
+  GameManager.gltfLoader.load("robo/scene.gltf", (gltf) => {
+    console.log("gltf model here:", gltf);
+    const roboModel = gltf.scene;
+    // Model scale
+    roboModel.scale.set(1000, 1000, 1000);
+    // Model position
+    roboModel.position.set(0, -57, 213.37);
+
+    GameManager.scene.add(roboModel);
+
+    // UI Debugger for the robo model
+    GameManager.gui = new gui.GUI();
+    // Position parameters
+    GameManager.gui
+      .add(roboModel.position, "x")
+      .min(-1000)
+      .max(1000)
+      .step(0.01)
+      .name("gui position x");
+    GameManager.gui
+      .add(roboModel.position, "y", -100, 100)
+      .min(-1000)
+      .max(1000)
+      .step(0.01)
+      .name("gui position y");
+    GameManager.gui
+      .add(roboModel.position, "z")
+      .min(-1000)
+      .max(1000)
+      .step(0.01)
+      .name("gui position z");
+
+    // Scale parameters
+    GameManager.gui
+      .add(roboModel.scale, "x")
+      .min(0)
+      .max(2000)
+      .step(0.01)
+      .name("gui scale x");
+    GameManager.gui
+      .add(roboModel.scale, "y")
+      .min(0)
+      .max(2000)
+      .step(0.01)
+      .name("gui scale y");
+    GameManager.gui
+      .add(roboModel.scale, "z")
+      .min(0)
+      .max(2000)
+      .step(0.01)
+      .name("gui scale z");
+  });
 
   // Add an event listener to the play button.
   document
