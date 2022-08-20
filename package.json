@@ -1,0 +1,10 @@
+{
+  "name": "division5-tetris",
+  "version": "1.0.0",
+  "description": "tech task for division 5",
+  "author": "Emilian Kasemi",
+  "scripts": {},
+  "dependencies": {
+    "lil-gui": "^0.17.0"
+  }
+}
