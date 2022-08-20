@@ -33,11 +33,12 @@ GameManager.init = function () {
   GameManager.camera.position.z = 600;
   // Adding the camera to the scene.
 
-  // Add ambient light
+  // Adding some light
   const ambientLight = new THREE.AmbientLight(0xffffff, 1);
   const directionalLight = new THREE.DirectionalLight(0xffffff, 5);
+  // const spotLight = new THREE.SpotLight(0xffffff, 5);
 
-  GameManager.scene.add(ambientLight);
+  GameManager.scene.add(ambientLight, directionalLight);
   GameManager.scene.add(GameManager.camera);
 
   document.body.appendChild(GameManager.renderer.domElement); // Appending the renderer to the body of the document.
@@ -107,19 +108,19 @@ GameManager.init = function () {
       .min(-1000)
       .max(1000)
       .step(0.01)
-      .name("gui position x");
+      .name("Robo position x");
     GameManager.gui
       .add(roboModel.position, "y", -100, 100)
       .min(-1000)
       .max(1000)
       .step(0.01)
-      .name("gui position y");
+      .name("Robo position y");
     GameManager.gui
       .add(roboModel.position, "z")
       .min(-1000)
       .max(1000)
       .step(0.01)
-      .name("gui position z");
+      .name("Robo position z");
 
     // Scale parameters
     GameManager.gui
@@ -127,19 +128,19 @@ GameManager.init = function () {
       .min(0)
       .max(2000)
       .step(0.01)
-      .name("gui scale x");
+      .name("Robo scale x");
     GameManager.gui
       .add(roboModel.scale, "y")
       .min(0)
       .max(2000)
       .step(0.01)
-      .name("gui scale y");
+      .name("Robo scale y");
     GameManager.gui
       .add(roboModel.scale, "z")
       .min(0)
       .max(2000)
       .step(0.01)
-      .name("gui scale z");
+      .name("Robo scale z");
   });
 
   // Add an event listener to the play button.
@@ -159,22 +160,6 @@ GameManager.init = function () {
     GameManager.animate(); // Will use Window.requestAnimationFrame() to call the animate() function. animate() will call the render method and then call itself again using requestAnimationFrame().
     // https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame
   };
-
-  // window.requestAnimationFrame()
-  if (!window.requestAnimationFrame) {
-    window.requestAnimationFrame = (function () {
-      return (
-        // Browser compatibility
-        window.webkitRequestAnimationFrame ||
-        window.mozRequestAnimationFrame ||
-        window.oRequestAnimationFrame ||
-        window.msRequestAnimationFrame ||
-        function (callback, element) {
-          window.setTimeout(callback, 1000 / 60);
-        }
-      );
-    })();
-  }
 
   // Time variables
   // Calculating when to move the block.
@@ -208,5 +193,4 @@ GameManager.init = function () {
   };
 };
 
-// window.addEventListener("load", GameManager.init);
 GameManager.init();
