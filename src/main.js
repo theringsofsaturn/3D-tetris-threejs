@@ -6,6 +6,8 @@ import * as gui from "../node_modules/lil-gui/dist/lil-gui.esm.js";
 // Global object which will contain all the functions and variables, replicating so, the namespace in JavaScript. An example of anti-pattern, but will do for this small application.
 let GameManager = {};
 
+// ######################### GAME INITIALIZATION #########################
+
 // Creating Three.js objects, and storing them in the globaj object GameManager.
 GameManager.init = function () {
   // Fullscreen scene size
@@ -280,3 +282,144 @@ GameManager.createStaticBlocks = function (x, y, z) {
 };
 
 GameManager.init();
+
+// ########################## SHAPES ##########################
+
+GameManager.Utils = {};
+
+// Method to create a copy of of a vector, since object are passed by reference and numbers by value, v1 = v2 will mean one vector only in memory. If I can access directly the numeric value of the vector and make a clone of it, I would have two vectors to manipulate indenpendently.
+GameManager.Utils.cloneVector = function (vector) {
+  return { x: vector.x, y: vector.y, z: vector.z };
+};
+
+// The shapes are defined as an array of vectors, each vector is a point of the shape.
+
+GameManager.Box = {};
+
+GameManager.Box.shapes = [
+  // Every shape first cube should be [0,0,0]
+  [
+    { x: 0, y: 0, z: 0 },
+    { x: 1, y: 0, z: 0 },
+    { x: 1, y: 1, z: 0 },
+    { x: 1, y: 2, z: 0 },
+  ],
+  [
+    { x: 0, y: 0, z: 0 },
+    { x: 0, y: 1, z: 0 },
+    { x: 0, y: 2, z: 0 },
+  ],
+  [
+    { x: 0, y: 0, z: 0 },
+    { x: 0, y: 1, z: 0 },
+    { x: 1, y: 0, z: 0 },
+    { x: 1, y: 1, z: 0 },
+  ],
+  [
+    { x: 0, y: 0, z: 0 },
+    { x: 0, y: 1, z: 0 },
+    { x: 0, y: 2, z: 0 },
+    { x: 1, y: 1, z: 0 },
+  ],
+  [
+    { x: 0, y: 0, z: 0 },
+    { x: 0, y: 1, z: 0 },
+    { x: 1, y: 1, z: 0 },
+    { x: 1, y: 2, z: 0 },
+  ],
+];
+
+// Position and rotation of the shape. We use different units in the game box than Three.js. Will store the position separately ans use the built-in rotation.
+
+GameManager.position = {};
+
+// Generation of the shapes function
+// ################# START Box.create function #################
+GameManager.Box.create = function () {
+  // Get a random shape form
+
+  randomType = Math.floor(Math.random() * GameManager.Box.shapes.length);
+
+  // Save this shape type in the game manager
+  this.shapeRandomType = randomType;
+
+  // Create a empty array, loop through the shapes array to copy a random shape with cloneVector function and assign it to that array.
+
+  GameManager.Box.shape = [];
+
+  for (let i = 0; i < GameManager.Box.shapes[type].length; i++) {
+    GameManager.Box.shape.push(
+      GameManager.Utils.cloneVector(GameManager.Box.shapes[type][i])
+    );
+  }
+
+  // Connect all the cubes to one shape. Will use THREE.GeometryUtils.merge method for this. It will take a geometry and mesh and merge them together.
+  let tempShape;
+  let shape = new THREE.BoxGeometry(
+    GameManager.gameBoxSize,
+    GameManager.gameBoxSize,
+    GameManager.gameBoxSize
+  );
+
+  // Loop through the shape array and assign the position of the cube to the shape.
+  for (let i = 0; i < GameManager.Box.shape.length; i++) {
+    tempShape = new THREE.Mesh(
+      new THREE.BoxGeometry(
+        GameManager.gameBoxSize,
+        GameManager.gameBoxSize,
+        GameManager.gameBoxSize
+      ),
+      new THREE.MeshBasicMaterial({ color: 0xffffff })
+    );
+    tempShape.position.x = GameManager.gameBoxSize * GameManager.Box.shape[i].x;
+    tempShape.position.y = GameManager.gameBoxSize * GameManager.Box.shape[i].y;
+    tempShape.position.z = GameManager.gameBoxSize * GameManager.Box.shape[i].z;
+    THREE.GeometryUtils.merge(shape, tempShape);
+  }
+
+  // After getting the merged shape geometry, will use the same method THREE.SceneUtils.createMultiMaterialObject used before for merging a geometry and array of materials.
+  // https://threejs.org/docs/#examples/en/utils/SceneUtils
+
+  GameManager.Box.mesh = THREE.SceneUtils.createMultiMaterialObject(shape, [
+    new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      shading: THREE.FlatShading,
+      wireframe: true,
+      transparent: true,
+    }),
+    new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+    }),
+  ]);
+
+  // Set the initial position and rotation of the shape.
+  // Center of the game for x & y and n number for z.
+  GameManager.Box.position = {
+    x: Math.floor(GameManager.gameBoxObj.segmentX / 2) - 1,
+    y: Math.floor(GameManager.gameBoxObj.segmentY / 2) - 1,
+    z: 15,
+  };
+
+  GameManager.Box.position.x =
+    ((GameManager.Box.position.x - gameBoxObj.segmentX / 2) *
+      GameManager.gameBoxSize) /
+    2;
+
+  GameManager.Box.position.y =
+    (GameManager.Box.position.y - gameBoxObj.segmentY / 2) *
+    GameManager.gameBoxSize;
+
+  GameManager.Box.position.z =
+    (GameManager.Box.position.z - gameBoxObj.segmentz / 2) *
+    GameManager.gameBoxSize;
+
+  GameManager.Box.rotation = { x: 0, y: 0, z: 0 };
+  GameManager.mesh.overdraw = true; // This will allow the mesh to draw over the edges of the other mesh.
+
+  GameManager.scene.add(GameManager.Box.mesh);
+};
+// Call the create function to create the shape.
+GameManager.Box.create();
+// ################# END Box.create function #################
+
+
