@@ -29,7 +29,7 @@ GameManager.init = function () {
     near,
     far
   );
-  // Camera starts at (0, 0, 0) looking at (0, 0, -1) with an up vector of (0, 1, 0). So, we pull it back at:
+  // Camera starts at (0, 0, 0) looking at (0, 0, -1) with an up vector of (0, 1, 0). So, I pull it back at:
   GameManager.camera.position.z = 400;
   // Adding the camera to the scene.
 
@@ -121,18 +121,19 @@ GameManager.init = function () {
 
   // The game box attributes
   let gameBoxObj = {
-    width: 700,
-    height: 400,
+    width: 900,
+    height: 500,
     depth: 1200,
     // Number of boxes fitting inside the game box x,y,z axis
-    segmentX: 8,
+    segmentX: 6,
     segmentY: 6,
     segmentZ: 15,
   };
 
-  GameManager.gameBoxObj = gameBoxObj;
+  GameManager.gameBoxObj = gameBoxObj; // Storing the game box object in the global object GameManager.
+
   // Size of each box in the game box will be the width of the game box divided by the number of boxes in the axis.
-  GameManager.gameBoxSize = gameBoxObj.width / gameBoxObj.segmentX;
+  GameManager.gameBoxSize = gameBoxObj.width / gameBoxObj.segmentX; // Three.js, WebGL, OpenGL have their own units that relate to meters or pixels. This formula is responsible for conversion.
 
   // Creating the game box.
   let gameBox = new THREE.Mesh(
@@ -145,16 +146,15 @@ GameManager.init = function () {
       gameBoxObj.segmentZ
     ),
     new THREE.MeshBasicMaterial({
-      color: "",
+      color: 0xffffff,
       wireframe: true,
     })
   );
 
-  // Adding the game box to the scene.
   GameManager.scene.add(gameBox);
 
   // Change the scene background color.
-  // GameManager.scene.background = new THREE.Color("grey");
+  // GameManager.scene.background = new THREE.Color("yellow");
   // Set a background image for the scene.
   // GameManager.scene.background = new THREE.TextureLoader().load(
   //   "https://png.pngtree.com/thumb_back/fw800/background/20210312/pngtree-colorful-tetris-lego-blocks-background-image_584426.jpg"
@@ -218,9 +218,9 @@ GameManager.animate = function () {
 
 // In our game, cubes will be connected when are dynamic and static when they are not. Checking for collisions when the shape touches the floor or another shape. The moving block (with merged geometry of a few cubes) is transformed into static, separated cubes that don't move anymore. It's convenient to keep these cubes in a 3D array.
 
-GameManager.staticBlocks = []; // Array to store the static blocks.
+// GameManager.staticBlocks = []; // Array to store the static blocks.
 
-// The color of the Z axis.
+// Stores a list of colors to indicate the position of the cube on z axis.
 GameManager.zColor = [
   0x6666ff, 0x66ffff, 0xcc68ee, 0x666633, 0x66ff66, 0x9966ff, 0x00ff66,
   0x66ee33, 0x003399, 0x330099, 0xffa500, 0x99ff00, 0xee1289, 0x71c671,
@@ -235,18 +235,48 @@ GameManager.createStaticBlocks = function (x, y, z) {
     GameManager.staticBlocks[x][y] = [];
   }
 
-  // Using a Three.js function SceneUtils that takes a geometry and an array of materials and returns a mesh.
+  // Using a Three.js function SceneUtils that takes a geometry and an array of materials. It will create a mesh for every material. It will save me some code calculation.
   // https://threejs.org/docs/#examples/en/utils/SceneUtils
 
-  const mesh = THREE.SceneUtils.createMultiMaterialObject(
+  let mesh = THREE.SceneUtils.createMultiMaterialObject(
     new THREE.BoxGeometry(
       GameManager.gameBoxSize,
       GameManager.gameBoxSize,
       GameManager.gameBoxSize
-    )
+    ),
+    [
+      new THREE.MeshBasicMaterial({
+        color: 0x000000,
+        shading: THREE.FlatShading,
+        wireframe: true,
+        transparent: true,
+      }),
+      new THREE.MeshBasicMaterial({ color: GameManager.zColor[z] }),
+    ]
   );
-};
 
-GameManager.createStaticBlocks(0, 0, 0);
+  // The game box is centered at the origin (0,0,0). So, some of the cubes will have negative or positive x,y,z values. I need to specify a corner of an object and think of box positions as value from n to n.
+  // Three.hs has its own units that relate to meters or pixels. I use this formula above for the box for the conversion:  GameManager.gameBoxSize = gameBoxObj.width / gameBoxObj.segmentX
+  // In the case below for the position: convert "n - n" to "-n - +n" (0 - 5 to -3 - +2):
+  // (x - Tetris.boundingBoxConfig.splitX/2)
+  // Then scale to Three.js units:
+  // * GameManager.gameBoxSize
+  // Shif position since we specify the cube center not its corner.
+  // + GameManager.gameBoxSize / 2
+
+  mesh.position.x =
+    (x - GameManager.gameBoxObj.segmentX / 2) * GameManager.gameBoxSize +
+    GameManager.gameBoxSize / 2;
+  mesh.position.y =
+    (y - GameManager.gameBoxObj.segmentY / 2) * GameManager.gameBoxSize +
+    GameManager.gameBoxSize / 2;
+  mesh.position.z =
+    (z - GameManager.gameBoxObj.segmentZ / 2) * GameManager.gameBoxSize +
+    GameManager.gameBoxSize / 2;
+  mesh.overdraw = true; // This will allow the mesh to draw over the edges of the other mesh.
+
+  GameManager.scene.add(mesh);
+  GameManager.staticBlocks[x][y][z] = mesh; // Add the mesh to the staticBlocks array.
+};
 
 GameManager.init();
