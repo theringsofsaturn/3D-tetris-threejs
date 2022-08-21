@@ -374,7 +374,7 @@ GameManager.Box.create = function () {
     tempShape.position.x = GameManager.gameBoxSize * GameManager.Box.shape[i].x;
     tempShape.position.y = GameManager.gameBoxSize * GameManager.Box.shape[i].y;
     tempShape.position.z = GameManager.gameBoxSize * GameManager.Box.shape[i].z;
-    THREE.GeometryUtils.merge(shape, tempShape);
+    shape.merge(tempShape.geometry, tempShape.matrix);
   }
 
   // After getting the merged shape geometry, will use the same method THREE.SceneUtils.createMultiMaterialObject used before for merging a geometry and array of materials.
