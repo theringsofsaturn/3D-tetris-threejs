@@ -338,7 +338,7 @@ GameManager.position = {};
 GameManager.Box.create = function () {
   // Get a random shape form
 
-  randomType = Math.floor(Math.random() * GameManager.Box.shapes.length);
+  let randomType = Math.floor(Math.random() * GameManager.Box.shapes.length);
 
   // Save this shape type in the game manager
   this.shapeRandomType = randomType;
@@ -347,9 +347,9 @@ GameManager.Box.create = function () {
 
   GameManager.Box.shape = [];
 
-  for (let i = 0; i < GameManager.Box.shapes[type].length; i++) {
+  for (let i = 0; i < GameManager.Box.shapes[randomType].length; i++) {
     GameManager.Box.shape.push(
-      GameManager.Utils.cloneVector(GameManager.Box.shapes[type][i])
+      GameManager.Utils.cloneVector(GameManager.Box.shapes[randomType][i])
     );
   }
 
