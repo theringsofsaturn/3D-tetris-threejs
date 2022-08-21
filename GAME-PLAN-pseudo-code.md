@@ -25,7 +25,7 @@ row++. But we need to check for overlaps between falling shapes and landed shape
 *then if statement: if landed[row] !== 0 etc* (row blocks will have values of 0 & 1)
 - if there are all 0, then it means the row is free and there will be no collision.
 
-# The landing of shapes
+# The landing of shapes and collision detection
 - check if our shape collides with a row block with value 1. If yes it means we have a collision, so it has landed. 
 - If it has landed, add this shape to landed[] array.
 - With the similar loop to check for collision, check if shape row & column isn't 0, add to landed[]. 
@@ -50,10 +50,16 @@ row++. But we need to check for overlaps between falling shapes and landed shape
 
 - Re-render everything after the shape rotates.
 
+# Possible issues
 - Some problems may arise with this. For example if the user presses R again after the shape has collided or landed. Or if the shape is out of the game field when rotated etc.
 
 - Find a solution to check for overlaps with landed blocks.
 - So, if there's a collision, or if the shape is out of the game field bounds, block the rotation of the shape!
+
+- Another thing, might be performance issue with collision detection. Shapes will be some kind of aligned axis in a specified point.Keep one axis static (like z) another axis moving (like y), and x free on input? If we move a shape and the space it needs to move is occupied, then we have a collision. 
+- Should find the simplest solution for it. Best would be O(1) complexity. Or at least O(n). 
+
+- Rotation can be complex. Would be good to keep somehow the basic block's shape in a rotated form, so we can apply only position and quickly check for collision.
 
 # Main checks implementation
 # 1
