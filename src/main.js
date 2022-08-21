@@ -401,21 +401,20 @@ GameManager.Box.create = function () {
   };
 
   GameManager.Box.position.x =
-    ((GameManager.Box.position.x - gameBoxObj.segmentX / 2) *
+    ((GameManager.Box.position.x - GameManager.gameBoxObj.segmentX / 2) *
       GameManager.gameBoxSize) /
     2;
 
   GameManager.Box.position.y =
-    (GameManager.Box.position.y - gameBoxObj.segmentY / 2) *
+    (GameManager.Box.position.y - GameManager.gameBoxObj.segmentY / 2) *
     GameManager.gameBoxSize;
 
   GameManager.Box.position.z =
-    (GameManager.Box.position.z - gameBoxObj.segmentz / 2) *
+    (GameManager.Box.position.z - GameManager.gameBoxObj.segmentz / 2) *
     GameManager.gameBoxSize;
 
   GameManager.Box.rotation = { x: 0, y: 0, z: 0 };
   GameManager.mesh.overdraw = true; // This will allow the mesh to draw over the edges of the other mesh.
-
   GameManager.scene.add(GameManager.Box.mesh);
 };
 // Call the create function to create the shape.
