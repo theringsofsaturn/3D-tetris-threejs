@@ -1,9 +1,16 @@
-// import Three.js modules
-import * as THREE from "https://unpkg.com/three@0.126.1/build/three.module.js";
-import { GLTFLoader } from "https://unpkg.com/three@0.126.1/examples/jsm/loaders/GLTFLoader.js";
-import * as gui from "../node_modules/lil-gui/dist/lil-gui.esm.js";
+// import Three.js modulesGLTFLoader
+// import * as THREE from "../vendors/three/build/three.module.js";
+// import { GLTFLoader } from "../vendors/three/examples/jsm/loaders/GLTFLoader.js";
+// import * as THREE from 'https://cdn.skypack.dev/three@0.143.0/build/three.module.js';
+// import {GLTFLoader} from "https://cdn.skypack.dev/three@0.143.0/examples/jsm/loaders/GLTFLoader.js";
+// import * as THREE from "https://unpkg.com/three@0.126.1/build/three.module.js";
+// import { GLTFLoader } from "https://unpkg.com/three@0.126.1/examples/jsm/loaders/GLTFLoader.js";
+// import { BufferGeometryUtils } from "https://unpkg.com/three@0.126.1/examples/jsm/utils/BufferGeometryUtils.js";
+
+// import * as gui from "../node_modules/lil-gui/dist/lil-gui.esm.js";
 
 // Global object which will contain all the functions and variables, replicating so, the namespace in JavaScript. An example of anti-pattern, but will do for this small application.
+
 let GameManager = {};
 
 // ######################### GAME INITIALIZATION #########################
@@ -15,121 +22,38 @@ GameManager.init = function () {
   const height = window.innerHeight;
 
   // Camera attributes
-  const viewAngle = 45;
+  const viewAngle = 70;
   const aspect = width / height;
   const near = 0.1;
-  const far = 1000;
+  const far = 10000;
 
   // Creating the scene, the camera and the renderer.
   GameManager.renderer = new THREE.WebGLRenderer();
-  GameManager.renderer.setSize(width, height);
-
-  GameManager.scene = new THREE.Scene();
   GameManager.camera = new THREE.PerspectiveCamera(
     viewAngle,
     aspect,
     near,
     far
   );
+  GameManager.scene = new THREE.Scene();
+
   // Camera starts at (0, 0, 0) looking at (0, 0, -1) with an up vector of (0, 1, 0). So, I pull it back at:
-  GameManager.camera.position.z = 400;
-  // Adding the camera to the scene.
-
-  // Adding some light
-  const ambientLight = new THREE.AmbientLight(0x404040, 1);
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 20);
-  directionalLight.position.set(0, 1, 0);
-  directionalLight.castShadow = true;
-  const pointLight = new THREE.PointLight(0xc4c4c4, 2);
-  pointLight.position.set(0, 300, 500);
-  const pointLight2 = new THREE.PointLight(0xc4c4c4, 2);
-  pointLight2.position.set(500, 100, 0);
-  const pointLight3 = new THREE.PointLight(0xc4c4c4, 2);
-  pointLight3.position.set(0, 100, -500);
-  const pointLight4 = new THREE.PointLight(0xc4c4c4, 2);
-  pointLight4.position.set(-500, 300, 500);
-
-  GameManager.scene.add(
-    ambientLight,
-    directionalLight,
-    pointLight,
-    pointLight2,
-    pointLight3,
-    pointLight4
-  );
+  GameManager.camera.position.z = 700;
   GameManager.scene.add(GameManager.camera);
 
-  // gltf loader for loading the model.
-  GameManager.gltfLoader = new GLTFLoader();
-  GameManager.gltfLoader.load("robo/scene.gltf", (gltf) => {
-    console.log("gltf model here:", gltf);
-    const roboModel = gltf.scene;
-    // Model scale
-    roboModel.scale.set(900, 900, 900);
-    // Model position
-    roboModel.position.set(25, -60, 253.37);
-    // Model rotation
-    roboModel.rotation.set(0, 0.5, 0);
-    // Model name
-    roboModel.name = "roboModel";
-
-    GameManager.scene.add(roboModel);
-    this.animate();
-
-    // UI Debugger for the robo model
-    // GameManager.gui = new gui.GUI();
-    // // Position parameters
-    // GameManager.gui
-    //   .add(roboModel.position, "x")
-    //   .min(-1000)
-    //   .max(1000)
-    //   .step(0.01)
-    //   .name("Robo position x");
-    // GameManager.gui
-    //   .add(roboModel.position, "y", -100, 100)
-    //   .min(-1000)
-    //   .max(1000)
-    //   .step(0.01)
-    //   .name("Robo position y");
-    // GameManager.gui
-    //   .add(roboModel.position, "z")
-    //   .min(-1000)
-    //   .max(1000)
-    //   .step(0.01)
-    //   .name("Robo position z");
-
-    // // Scale parameters
-    // GameManager.gui
-    //   .add(roboModel.scale, "x")
-    //   .min(0)
-    //   .max(2000)
-    //   .step(0.01)
-    //   .name("Robo scale x");
-    // GameManager.gui
-    //   .add(roboModel.scale, "y")
-    //   .min(0)
-    //   .max(2000)
-    //   .step(0.01)
-    //   .name("Robo scale y");
-    // GameManager.gui
-    //   .add(roboModel.scale, "z")
-    //   .min(0)
-    //   .max(2000)
-    //   .step(0.01)
-    //   .name("Robo scale z");
-  });
-
+  // Starting the renderer
+  GameManager.renderer.setSize(width, height);
   document.body.appendChild(GameManager.renderer.domElement); // Appending the renderer to the body of the document.
 
   // The game box attributes
   let gameBoxObj = {
-    width: 900,
-    height: 500,
+    width: 1000,
+    height: 700,
     depth: 1200,
     // Number of boxes fitting inside the game box x,y,z axis
     segmentX: 6,
     segmentY: 6,
-    segmentZ: 15,
+    segmentZ: 20,
   };
 
   GameManager.gameBoxObj = gameBoxObj; // Storing the game box object in the global object GameManager.
@@ -139,7 +63,7 @@ GameManager.init = function () {
 
   // Creating the game box.
   let gameBox = new THREE.Mesh(
-    new THREE.BoxGeometry(
+    new THREE.CubeGeometry(
       gameBoxObj.width,
       gameBoxObj.height,
       gameBoxObj.depth,
@@ -155,15 +79,15 @@ GameManager.init = function () {
 
   GameManager.scene.add(gameBox);
 
+  // Rendering
+  GameManager.renderer.render(GameManager.scene, GameManager.camera);
+
   // Change the scene background color.
-  // GameManager.scene.background = new THREE.Color("yellow");
+  // GameManager.scene.background = new THREE.Color(0xff0000 );
   // Set a background image for the scene.
   // GameManager.scene.background = new THREE.TextureLoader().load(
   //   "https://png.pngtree.com/thumb_back/fw800/background/20210312/pngtree-colorful-tetris-lego-blocks-background-image_584426.jpg"
   // ); // Will use drawing lines instead of a texture.
-
-  // Rendering
-  GameManager.renderer.render(GameManager.scene, GameManager.camera);
 
   // Add an event listener to the play button.
   document
@@ -174,14 +98,16 @@ GameManager.init = function () {
     });
 };
 
-// With the play() method: hide menu instructions and show the points. Also call animate() function.
+// With the play() method: hide menu instructions, hide the 3D model Robo and show the score. Also call animate() function.
 GameManager.play = function () {
   document.getElementById("menu").style.display = "none";
   GameManager.pointsElement = document.getElementById("points");
   GameManager.pointsElement.style.display = "block";
 
   //Remove gltf model "roboModel" from the scene.
-  GameManager.scene.remove(GameManager.scene.getObjectByName("roboModel"));
+  // GameManager.scene.remove(GameManager.scene.getObjectByName("roboModel"));
+
+  GameManager.Box.create(); // function to create shapes
 
   GameManager.animate(); // Will use Window.requestAnimationFrame() to call the animate() function. animate() will call the render method and then call itself again using requestAnimationFrame().
   // https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame
@@ -205,12 +131,15 @@ GameManager.animate = function () {
   GameManager.currentFrameTime += GameManager.frameTime;
 
   // If the current frame time is greater than the game step time, then move the block.
-  if (GameManager.currentFrameTime > GameManager.gameStepTime) {
-    // Block movement.
+  while (GameManager.currentFrameTime > GameManager.gameStepTime) {
     GameManager.currentFrameTime -= GameManager.gameStepTime;
+    GameManager.Box.move(0, 0, -1);
   }
+
   // Render the scene.
   GameManager.renderer.render(GameManager.scene, GameManager.camera);
+  // Change canva color from white to black
+  GameManager.renderer.setClearColorHex(0x000000, 1);
 
   // If the game is not over, then call the animate() function again.
   if (!GameManager.gameOver) {
@@ -220,7 +149,7 @@ GameManager.animate = function () {
 
 // In our game, cubes will be connected when are dynamic and static when they are not. Checking for collisions when the shape touches the floor or another shape. The moving block (with merged geometry of a few cubes) is transformed into static, separated cubes that don't move anymore. It's convenient to keep these cubes in a 3D array.
 
-// GameManager.staticBlocks = []; // Array to store the static blocks.
+GameManager.staticBlocks = []; // Array to store the static blocks.
 
 // Stores a list of colors to indicate the position of the cube on z axis.
 GameManager.zColor = [
@@ -230,18 +159,17 @@ GameManager.zColor = [
 ];
 
 GameManager.createStaticBlocks = function (x, y, z) {
-  if (GameManager.staticBlocks[x] === undefined) {
+  if (GameManager.staticBlocks[x] === undefined)
     GameManager.staticBlocks[x] = [];
-  }
-  if (GameManager.staticBlocks[x][y] === undefined) {
+
+  if (GameManager.staticBlocks[x][y] === undefined)
     GameManager.staticBlocks[x][y] = [];
-  }
 
   // Using a Three.js function SceneUtils that takes a geometry and an array of materials. It will create a mesh for every material. It will save me some code calculation.
   // https://threejs.org/docs/#examples/en/utils/SceneUtils
 
   let mesh = THREE.SceneUtils.createMultiMaterialObject(
-    new THREE.BoxGeometry(
+    new THREE.CubeGeometry(
       GameManager.gameBoxSize,
       GameManager.gameBoxSize,
       GameManager.gameBoxSize
@@ -260,10 +188,10 @@ GameManager.createStaticBlocks = function (x, y, z) {
   // The game box is centered at the origin (0,0,0). So, some of the cubes will have negative or positive x,y,z values. I need to specify a corner of an object and think of box positions as value from n to n.
   // Three.hs has its own units that relate to meters or pixels. I use this formula above for the box for the conversion:  GameManager.gameBoxSize = gameBoxObj.width / gameBoxObj.segmentX
   // In the case below for the position: convert "n - n" to "-n - +n" (0 - 5 to -3 - +2):
-  // (x - Tetris.boundingBoxConfig.splitX/2)
+  // (x - GameManager.gameBoxObj.segmentX/2)
   // Then scale to Three.js units:
   // * GameManager.gameBoxSize
-  // Shif position since we specify the cube center not its corner.
+  // Shift position since we specify the cube center not its corner.
   // + GameManager.gameBoxSize / 2
 
   mesh.position.x =
@@ -275,13 +203,68 @@ GameManager.createStaticBlocks = function (x, y, z) {
   mesh.position.z =
     (z - GameManager.gameBoxObj.segmentZ / 2) * GameManager.gameBoxSize +
     GameManager.gameBoxSize / 2;
-  mesh.overdraw = true; // This will allow the mesh to draw over the edges of the other mesh.
 
   GameManager.scene.add(mesh);
-  GameManager.staticBlocks[x][y][z] = mesh; // Add the mesh to the staticBlocks array.
+  GameManager.staticBlocks[x][y][z] = mesh;
+};
+
+GameManager.currentPoints = 0;
+GameManager.addPoints = function (n) {
+  GameManager.currentPoints += n;
+  GameManager.pointsDOM.innerHTML = GameManager.currentPoints;
 };
 
 GameManager.init();
+
+// Keyboard input
+window.addEventListener(
+  "keydown",
+  function (event) {
+    let key = event.code ? event.code : event.key;
+
+    switch (key) {
+      //case
+
+      case 38: // up (arrow)
+        GameManager.Box.move(0, 1, 0);
+        break;
+      case 40: // down (arrow)
+        GameManager.Box.move(0, -1, 0);
+        break;
+      case 37: // left(arrow)
+        GameManager.Box.move(-1, 0, 0);
+        break;
+      case 39: // right (arrow)
+        GameManager.Box.move(1, 0, 0);
+        break;
+      case 32: // space
+        GameManager.Box.move(0, 0, -1);
+        break;
+
+      case 87: // up (w)
+        GameManager.Box.rotate(90, 0, 0);
+        break;
+      case 83: // down (s)
+        GameManager.Box.rotate(-90, 0, 0);
+        break;
+
+      case 65: // left(a)
+        GameManager.Box.rotate(0, 0, 90);
+        break;
+      case 68: // right (d)
+        GameManager.Box.rotate(0, 0, -90);
+        break;
+
+      case 81: // (q)
+        GameManager.Box.rotate(0, 90, 0);
+        break;
+      case 69: // (e)
+        GameManager.Box.rotate(0, -90, 0);
+        break;
+    }
+  },
+  false
+);
 
 // ########################## SHAPES ##########################
 
@@ -330,95 +313,117 @@ GameManager.Box.shapes = [
 ];
 
 // Position and rotation of the shape. We use different units in the game box than Three.js. Will store the position separately ans use the built-in rotation.
-
-GameManager.position = {};
+GameManager.Box.position = {};
 
 // Generation of the shapes function
+// ---------------------------------------------------------------
 // ################# START Box.create function #################
+//----------------------------------------------------------------
+
 GameManager.Box.create = function () {
-  // Get a random shape form
+  let geometry, geometry2;
 
-  let randomType = Math.floor(Math.random() * GameManager.Box.shapes.length);
-
-  // Save this shape type in the game manager
-  this.shapeRandomType = randomType;
-
-  // Create a empty array, loop through the shapes array to copy a random shape with cloneVector function and assign it to that array.
+  let type = Math.floor(Math.random() * GameManager.Box.shapes.length);
+  this.blockType = type;
 
   GameManager.Box.shape = [];
-
-  for (let i = 0; i < GameManager.Box.shapes[randomType].length; i++) {
-    GameManager.Box.shape.push(
-      GameManager.Utils.cloneVector(GameManager.Box.shapes[randomType][i])
+  for (var i = 0; i < GameManager.Box.shapes[type].length; i++) {
+    GameManager.Box.shape[i] = GameManager.Utils.cloneVector(
+      GameManager.Box.shapes[type][i]
     );
   }
 
-  // Connect all the cubes to one shape. Will use THREE.GeometryUtils.merge method for this. It will take a geometry and mesh and merge them together.
-  let tempShape;
-  let shape = new THREE.BoxGeometry(
+  // Merge all cubes in one shape. Will use the built-in Three method merge. It will merge the vertices in the array. It will also consider the position of the merged geometry. Meshes has a position but geometries don't. It's supposed to be always 0,0,0. This why the first cube is [0,0,0].
+  geometry = new THREE.CubeGeometry(
     GameManager.gameBoxSize,
     GameManager.gameBoxSize,
     GameManager.gameBoxSize
   );
-
-  // Loop through the shape array and assign the position of the cube to the shape.
-  for (let i = 0; i < GameManager.Box.shape.length; i++) {
-    tempShape = new THREE.Mesh(
-      new THREE.BoxGeometry(
+  for (let i = 1; i < GameManager.Box.shape.length; i++) {
+    geometry2 = new THREE.Mesh(
+      new THREE.CubeGeometry(
         GameManager.gameBoxSize,
         GameManager.gameBoxSize,
         GameManager.gameBoxSize
-      ),
-      new THREE.MeshBasicMaterial({ color: 0xffffff })
+      )
     );
-    tempShape.position.x = GameManager.gameBoxSize * GameManager.Box.shape[i].x;
-    tempShape.position.y = GameManager.gameBoxSize * GameManager.Box.shape[i].y;
-    tempShape.position.z = GameManager.gameBoxSize * GameManager.Box.shape[i].z;
-    shape.merge(tempShape.geometry, tempShape.matrix);
+    geometry2.position.x = GameManager.gameBoxSize * GameManager.Box.shape[i].x;
+    geometry2.position.y = GameManager.gameBoxSize * GameManager.Box.shape[i].y;
+
+    THREE.GeometryUtils.merge(geometry, geometry2); // Merge them together
   }
 
-  // After getting the merged shape geometry, will use the same method THREE.SceneUtils.createMultiMaterialObject used before for merging a geometry and array of materials.
-  // https://threejs.org/docs/#examples/en/utils/SceneUtils
-
-  GameManager.Box.mesh = THREE.SceneUtils.createMultiMaterialObject(shape, [
+  // After getting the merged shape geometry, will use again the method THREE.SceneUtils.createMultiMaterialObject for two materials. One for the color and one for the transparent.
+  GameManager.Box.mesh = THREE.SceneUtils.createMultiMaterialObject(geometry, [
     new THREE.MeshBasicMaterial({
-      color: 0xffffff,
+      color: 0xff0000,
       shading: THREE.FlatShading,
       wireframe: true,
       transparent: true,
     }),
-    new THREE.MeshBasicMaterial({
-      color: 0xffffff,
-    }),
+    new THREE.MeshBasicMaterial({ color: 0xff0000 }),
   ]);
 
-  // Set the initial position and rotation of the shape.
-  // Center of the game for x & y and n number for z.
+  // Setting the initial position. Center for x and y and n number for z.
   GameManager.Box.position = {
     x: Math.floor(GameManager.gameBoxObj.segmentX / 2) - 1,
     y: Math.floor(GameManager.gameBoxObj.segmentY / 2) - 1,
     z: 15,
   };
 
-  GameManager.Box.position.x =
+  GameManager.Box.mesh.position.x =
     ((GameManager.Box.position.x - GameManager.gameBoxObj.segmentX / 2) *
       GameManager.gameBoxSize) /
     2;
+  GameManager.Box.mesh.position.y =
+    ((GameManager.Box.position.y - GameManager.gameBoxObj.segmentY / 2) *
+      GameManager.BoxSize) /
+    2;
+  GameManager.Box.mesh.position.z =
+    (GameManager.Box.position.z - GameManager.gameBoxObj.segmentZ / 2) *
+      GameManager.gameBoxSize +
+    GameManager.gameBoxSize / 2;
+  GameManager.Box.mesh.rotation = { x: 0, y: 0, z: 0 };
+  GameManager.Box.mesh.overdraw = true;
 
-  GameManager.Box.position.y =
-    (GameManager.Box.position.y - GameManager.gameBoxObj.segmentY / 2) *
-    GameManager.gameBoxSize;
-
-  GameManager.Box.position.z =
-    (GameManager.Box.position.z - GameManager.gameBoxObj.segmentz / 2) *
-    GameManager.gameBoxSize;
-
-  GameManager.Box.rotation = { x: 0, y: 0, z: 0 };
-  GameManager.mesh.overdraw = true; // This will allow the mesh to draw over the edges of the other mesh.
   GameManager.scene.add(GameManager.Box.mesh);
 };
-// Call the create function to create the shape.
-GameManager.Box.create();
-// ################# END Box.create function #################
 
+// It's cleaner and more readable to have rotation and position separated. It will also help with collision detection.
+// Rotation function. To rotate lets use the built-in methods, and convert angles to radians.
+GameManager.Box.rotate = function (x, y, z) {
+  GameManager.Box.mesh.rotation.x += (x * Math.PI) / 180; // Convert to radians
+  GameManager.Box.mesh.rotation.y += (y * Math.PI) / 180;
+  GameManager.Box.mesh.rotation.z += (z * Math.PI) / 180;
+};
 
+// Move function.
+GameManager.Box.move = function (x, y, z) {
+  GameManager.Box.mesh.position.x += x * GameManager.gameBoxSize;
+  GameManager.Box.position.x += x;
+
+  GameManager.Box.mesh.position.y += y * GameManager.gameBoxSize;
+  GameManager.Box.position.y += y;
+
+  GameManager.Box.mesh.position.z += z * GameManager.gameBoxSize;
+  GameManager.Box.position.z += z;
+  if (GameManager.Box.position.z == 0) GameManager.Box.landedBox(); // If the box is on the ground, call the landed function. It means it should no longer move, so we convert it to static, remove it from the scene and create a new one.
+};
+
+// Called when the box is on the ground. It will be converted to static box, remove from the scene and create a new one.
+GameManager.Box.harden = function () {
+  let shape = GameManager.Box.shape;
+  for (let i = 0; i < shape.length; i++) {
+    GameManager.createStaticBlocks(
+      GameManager.Box.position.x + shape[i].x,
+      GameManager.Box.position.y + shape[i].y,
+      GameManager.Box.position.z + shape[i].z
+    );
+  }
+};
+
+GameManager.Box.landedBox = function () {
+  GameManager.Box.harden();
+  GameManager.scene.removeObject(GameManager.Box.mesh);
+  GameManager.Box.create();
+};
