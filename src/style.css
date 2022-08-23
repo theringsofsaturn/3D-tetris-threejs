@@ -5,6 +5,11 @@ body {
   background-color: #000000;
 }
 
+#tetris-img {
+  width: 250px;
+  height: 250px;
+}
+
 h1 {
   color: #fff;
   font-size: 1.5em;
