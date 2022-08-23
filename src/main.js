@@ -4,7 +4,7 @@
 // import * as THREE from 'https://cdn.skypack.dev/three@0.143.0/build/three.module.js';
 // import {GLTFLoader} from "https://cdn.skypack.dev/three@0.143.0/examples/jsm/loaders/GLTFLoader.js";
 // import * as THREE from "https://unpkg.com/three@0.126.1/build/three.module.js";
-// import { GLTFLoader } from "https://unpkg.com/three@0.126.1/examples/jsm/loaders/GLTFLoader.js";
+import { GLTFLoader } from "https://unpkg.com/three@0.126.1/examples/jsm/loaders/GLTFLoader.js";
 // import { BufferGeometryUtils } from "https://unpkg.com/three@0.126.1/examples/jsm/utils/BufferGeometryUtils.js";
 
 // import * as gui from "../node_modules/lil-gui/dist/lil-gui.esm.js";
@@ -24,7 +24,7 @@ GameManager.init = function () {
   const height = window.innerHeight;
 
   // Camera attributes
-  const viewAngle = 70;
+  const viewAngle = 60;
   const aspect = width / height;
   const near = 0.1;
   const far = 10000;
@@ -40,7 +40,7 @@ GameManager.init = function () {
   GameManager.scene = new THREE.Scene();
 
   // Camera starts at (0, 0, 0) looking at (0, 0, -1) with an up vector of (0, 1, 0). So, I pull it back at:
-  GameManager.camera.position.z = 600;
+  GameManager.camera.position.z = 500;
   GameManager.scene.add(GameManager.camera);
 
   // Starting the renderer
@@ -80,6 +80,30 @@ GameManager.init = function () {
 
   // Rendering the scene & camera
   GameManager.renderer.render(GameManager.scene, GameManager.camera);
+
+  //   GLTF Loader
+  // Adding some light
+  const ambientLight = new THREE.AmbientLight(0x404040, 1);
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 20);
+  directionalLight.position.set(0, 1, 0);
+  directionalLight.castShadow = true;
+  const pointLight = new THREE.PointLight(0xc4c4c4, 2);
+  pointLight.position.set(0, 300, 500);
+  const pointLight2 = new THREE.PointLight(0xc4c4c4, 2);
+  pointLight2.position.set(500, 100, 0);
+  const pointLight3 = new THREE.PointLight(0xc4c4c4, 2);
+  pointLight3.position.set(0, 100, -500);
+  const pointLight4 = new THREE.PointLight(0xc4c4c4, 2);
+  pointLight4.position.set(-500, 300, 500);
+
+  GameManager.scene.add(
+    ambientLight,
+    directionalLight,
+    pointLight,
+    pointLight2,
+    pointLight3,
+    pointLight4
+  );
 
   // Add an event listener to the play button.
   document
@@ -413,3 +437,23 @@ GameManager.Box.landedBox = function () {
   GameManager.scene.removeObject(GameManager.Box.mesh);
   GameManager.Box.create();
 };
+
+
+// ############### GLTFLoader and 3D Models ################################
+// gltf loader for loading the model.
+// GameManager.gltfLoader = new GLTFLoader();
+// GameManager.gltfLoader.load("robo/scene.gltf", (gltf) => {
+//   console.log("gltf model here:", gltf);
+//   const roboModel = gltf.scene;
+//   // Model scale
+//   roboModel.scale.set(900, 900, 900);
+//   // Model position
+//   roboModel.position.set(25, -60, 253.37);
+//   // Model rotation
+//   roboModel.rotation.set(0, 0.5, 0);
+//   // Model name
+//   roboModel.name = "roboModel";
+
+//   GameManager.scene.add(roboModel);
+//   this.animate();
+// });
