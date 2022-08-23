@@ -16,7 +16,9 @@ let GameManager = {};
 // ######################### GAME INITIALIZATION #########################
 
 // Creating Three.js objects, and storing them in the globaj object GameManager.
+
 GameManager.init = function () {
+  // set the scene size
   // Fullscreen scene size
   const width = window.innerWidth;
   const height = window.innerHeight;
@@ -38,56 +40,46 @@ GameManager.init = function () {
   GameManager.scene = new THREE.Scene();
 
   // Camera starts at (0, 0, 0) looking at (0, 0, -1) with an up vector of (0, 1, 0). So, I pull it back at:
-  GameManager.camera.position.z = 700;
+  GameManager.camera.position.z = 600;
   GameManager.scene.add(GameManager.camera);
 
   // Starting the renderer
   GameManager.renderer.setSize(width, height);
-  document.body.appendChild(GameManager.renderer.domElement); // Appending the renderer to the body of the document.
+  document.body.appendChild(GameManager.renderer.domElement); // Appending the renderer to the body of the document
 
-  // The game box attributes
-  let gameBoxObj = {
-    width: 1000,
-    height: 700,
-    depth: 1200,
+  // The game box configuration
+  let gameBoxConfiguration = {
+    width: 360,
+    height: 360,
+    depth: 1200, // Change the depth when accordingly when changing the Box size to it
+
     // Number of boxes fitting inside the game box x,y,z axis
     segmentX: 6,
     segmentY: 6,
     segmentZ: 20,
   };
+  GameManager.gameBoxConfiguration = gameBoxConfiguration; // Storing the game box object in the global object GameManager.
+  GameManager.boxSize =
+    gameBoxConfiguration.width / gameBoxConfiguration.segmentX; // Three.js, WebGL, OpenGL have their own units that relate to meters or pixels. This formula is responsible for conversion.
 
-  GameManager.gameBoxObj = gameBoxObj; // Storing the game box object in the global object GameManager.
-
-  // Size of each box in the game box will be the width of the game box divided by the number of boxes in the axis.
-  GameManager.gameBoxSize = gameBoxObj.width / gameBoxObj.segmentX; // Three.js, WebGL, OpenGL have their own units that relate to meters or pixels. This formula is responsible for conversion.
-
-  // Creating the game box.
+  // -----------------------------------------------------
+  // ############# Creating the game box #################
+  // -----------------------------------------------------
   let gameBox = new THREE.Mesh(
     new THREE.CubeGeometry(
-      gameBoxObj.width,
-      gameBoxObj.height,
-      gameBoxObj.depth,
-      gameBoxObj.segmentX,
-      gameBoxObj.segmentY,
-      gameBoxObj.segmentZ
+      gameBoxConfiguration.width,
+      gameBoxConfiguration.height,
+      gameBoxConfiguration.depth,
+      gameBoxConfiguration.segmentX,
+      gameBoxConfiguration.segmentY,
+      gameBoxConfiguration.segmentZ
     ),
-    new THREE.MeshBasicMaterial({
-      color: 0xffffff,
-      wireframe: true,
-    })
+    new THREE.MeshBasicMaterial({ color: 0xfffff, wireframe: true })
   );
-
   GameManager.scene.add(gameBox);
 
-  // Rendering
+  // Rendering the scene & camera
   GameManager.renderer.render(GameManager.scene, GameManager.camera);
-
-  // Change the scene background color.
-  // GameManager.scene.background = new THREE.Color(0xff0000 );
-  // Set a background image for the scene.
-  // GameManager.scene.background = new THREE.TextureLoader().load(
-  //   "https://png.pngtree.com/thumb_back/fw800/background/20210312/pngtree-colorful-tetris-lego-blocks-background-image_584426.jpg"
-  // ); // Will use drawing lines instead of a texture.
 
   // Add an event listener to the play button.
   document
@@ -101,21 +93,24 @@ GameManager.init = function () {
 // With the play() method: hide menu instructions, hide the 3D model Robo and show the score. Also call animate() function.
 GameManager.play = function () {
   document.getElementById("menu").style.display = "none";
-  GameManager.pointsElement = document.getElementById("points");
-  GameManager.pointsElement.style.display = "block";
+  GameManager.scoreElement = document.getElementById("score");
+  GameManager.scoreElement.style.display = "block";
 
   //Remove gltf model "roboModel" from the scene.
   // GameManager.scene.remove(GameManager.scene.getObjectByName("roboModel"));
 
-  GameManager.Box.create(); // function to create shapes
-
+  GameManager.Box.create();
   GameManager.animate(); // Will use Window.requestAnimationFrame() to call the animate() function. animate() will call the render method and then call itself again using requestAnimationFrame().
   // https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame
 };
 
+// ----------------------------------------------------------------------
+// ################## Calculating when to move the block ################
+// -----------------------------------------------------------------------
 // Time variables
-// Calculating when to move the block.
-GameManager.gameStepTime = 1000; // This is the time in milliseconds between each step.
+
+GameManager.gameStepTime = 1000; // The time in milliseconds between each step.
+
 GameManager.frameTime = 0; // Time between frames in milliseconds.
 GameManager.currentFrameTime = 0; // Time of the current frame in milliseconds.
 GameManager.lastFrameTime = Date.now(); // Timestamp of the last frame.
@@ -136,43 +131,36 @@ GameManager.animate = function () {
     GameManager.Box.move(0, 0, -1);
   }
 
-  // Render the scene.
+  // Render the scene and the camera.
   GameManager.renderer.render(GameManager.scene, GameManager.camera);
-  // Change canva color from white to black
-  GameManager.renderer.setClearColorHex(0x000000, 1);
 
-  // If the game is not over, then call the animate() function again.
-  if (!GameManager.gameOver) {
-    window.requestAnimationFrame(GameManager.animate);
-  }
+  if (!GameManager.gameOver) window.requestAnimationFrame(GameManager.animate);
 };
 
+//-----------------------------------------------------
 // In our game, cubes will be connected when are dynamic and static when they are not. Checking for collisions when the shape touches the floor or another shape. The moving block (with merged geometry of a few cubes) is transformed into static, separated cubes that don't move anymore. It's convenient to keep these cubes in a 3D array.
 
-GameManager.staticBlocks = []; // Array to store the static blocks.
+GameManager.staticBox = []; // Array to store the static blocks.
 
 // Stores a list of colors to indicate the position of the cube on z axis.
-GameManager.zColor = [
+GameManager.zColors = [
   0x6666ff, 0x66ffff, 0xcc68ee, 0x666633, 0x66ff66, 0x9966ff, 0x00ff66,
   0x66ee33, 0x003399, 0x330099, 0xffa500, 0x99ff00, 0xee1289, 0x71c671,
   0x00bfff, 0x666633, 0x669966, 0x9966ff,
 ];
-
 GameManager.createStaticBlocks = function (x, y, z) {
-  if (GameManager.staticBlocks[x] === undefined)
-    GameManager.staticBlocks[x] = [];
+  if (GameManager.staticBox[x] === undefined) GameManager.staticBox[x] = [];
 
-  if (GameManager.staticBlocks[x][y] === undefined)
-    GameManager.staticBlocks[x][y] = [];
+  if (GameManager.staticBox[x][y] === undefined)
+    GameManager.staticBox[x][y] = [];
 
   // Using a Three.js function SceneUtils that takes a geometry and an array of materials. It will create a mesh for every material. It will save me some code calculation.
-  // https://threejs.org/docs/#examples/en/utils/SceneUtils
 
   let mesh = THREE.SceneUtils.createMultiMaterialObject(
     new THREE.CubeGeometry(
-      GameManager.gameBoxSize,
-      GameManager.gameBoxSize,
-      GameManager.gameBoxSize
+      GameManager.boxSize,
+      GameManager.boxSize,
+      GameManager.boxSize
     ),
     [
       new THREE.MeshBasicMaterial({
@@ -181,7 +169,7 @@ GameManager.createStaticBlocks = function (x, y, z) {
         wireframe: true,
         transparent: true,
       }),
-      new THREE.MeshBasicMaterial({ color: GameManager.zColor[z] }),
+      new THREE.MeshBasicMaterial({ color: GameManager.zColors[z] }),
     ]
   );
 
@@ -195,32 +183,25 @@ GameManager.createStaticBlocks = function (x, y, z) {
   // + GameManager.gameBoxSize / 2
 
   mesh.position.x =
-    (x - GameManager.gameBoxObj.segmentX / 2) * GameManager.gameBoxSize +
-    GameManager.gameBoxSize / 2;
+    (x - GameManager.gameBoxConfiguration.segmentX / 2) * GameManager.boxSize +
+    GameManager.boxSize / 2;
   mesh.position.y =
-    (y - GameManager.gameBoxObj.segmentY / 2) * GameManager.gameBoxSize +
-    GameManager.gameBoxSize / 2;
+    (y - GameManager.gameBoxConfiguration.segmentY / 2) * GameManager.boxSize +
+    GameManager.boxSize / 2;
   mesh.position.z =
-    (z - GameManager.gameBoxObj.segmentZ / 2) * GameManager.gameBoxSize +
-    GameManager.gameBoxSize / 2;
+    (z - GameManager.gameBoxConfiguration.segmentZ / 2) * GameManager.boxSize +
+    GameManager.boxSize / 2;
 
   GameManager.scene.add(mesh);
-  GameManager.staticBlocks[x][y][z] = mesh;
-};
-
-GameManager.currentPoints = 0;
-GameManager.addPoints = function (n) {
-  GameManager.currentPoints += n;
-  GameManager.pointsDOM.innerHTML = GameManager.currentPoints;
+  GameManager.staticBox[x][y][z] = mesh;
 };
 
 GameManager.init();
 
-// Keyboard input
 window.addEventListener(
   "keydown",
   function (event) {
-    let key = event.code ? event.code : event.key;
+    let key = event.which ? event.which : event.keyCode;
 
     switch (key) {
       //case
@@ -266,16 +247,17 @@ window.addEventListener(
   false
 );
 
+// ------------------------------------------------------------
 // ########################## SHAPES ##########################
+// ------------------------------------------------------------
 
 GameManager.Utils = {};
 
 // Method to create a copy of of a vector, since object are passed by reference and numbers by value, v1 = v2 will mean one vector only in memory. If I can access directly the numeric value of the vector and make a clone of it, I would have two vectors to manipulate indenpendently.
+
 GameManager.Utils.cloneVector = function (vector) {
   return { x: vector.x, y: vector.y, z: vector.z };
 };
-
-// The shapes are defined as an array of vectors, each vector is a point of the shape.
 
 GameManager.Box = {};
 
@@ -312,10 +294,11 @@ GameManager.Box.shapes = [
   ],
 ];
 
+// ------------------------------------------------------------------
 // Position and rotation of the shape. We use different units in the game box than Three.js. Will store the position separately ans use the built-in rotation.
 GameManager.Box.position = {};
 
-// Generation of the shapes function
+// Function to create the shapes.
 // ---------------------------------------------------------------
 // ################# START Box.create function #################
 //----------------------------------------------------------------
@@ -324,65 +307,68 @@ GameManager.Box.create = function () {
   let geometry, geometry2;
 
   let type = Math.floor(Math.random() * GameManager.Box.shapes.length);
-  this.blockType = type;
+  this.BoxType = type;
 
   GameManager.Box.shape = [];
-  for (var i = 0; i < GameManager.Box.shapes[type].length; i++) {
+  for (let i = 0; i < GameManager.Box.shapes[type].length; i++) {
     GameManager.Box.shape[i] = GameManager.Utils.cloneVector(
       GameManager.Box.shapes[type][i]
     );
   }
 
   // Merge all cubes in one shape. Will use the built-in Three method merge. It will merge the vertices in the array. It will also consider the position of the merged geometry. Meshes has a position but geometries don't. It's supposed to be always 0,0,0. This why the first cube is [0,0,0].
+
   geometry = new THREE.CubeGeometry(
-    GameManager.gameBoxSize,
-    GameManager.gameBoxSize,
-    GameManager.gameBoxSize
+    GameManager.boxSize,
+    GameManager.boxSize,
+    GameManager.boxSize
   );
   for (let i = 1; i < GameManager.Box.shape.length; i++) {
     geometry2 = new THREE.Mesh(
       new THREE.CubeGeometry(
-        GameManager.gameBoxSize,
-        GameManager.gameBoxSize,
-        GameManager.gameBoxSize
+        GameManager.boxSize,
+        GameManager.boxSize,
+        GameManager.boxSize
       )
     );
-    geometry2.position.x = GameManager.gameBoxSize * GameManager.Box.shape[i].x;
-    geometry2.position.y = GameManager.gameBoxSize * GameManager.Box.shape[i].y;
-
-    THREE.GeometryUtils.merge(geometry, geometry2); // Merge them together
+    geometry2.position.x = GameManager.boxSize * GameManager.Box.shape[i].x;
+    geometry2.position.y = GameManager.boxSize * GameManager.Box.shape[i].y;
+    THREE.GeometryUtils.merge(geometry, geometry2); // Merge them together.
   }
 
   // After getting the merged shape geometry, will use again the method THREE.SceneUtils.createMultiMaterialObject for two materials. One for the color and one for the transparent.
   GameManager.Box.mesh = THREE.SceneUtils.createMultiMaterialObject(geometry, [
     new THREE.MeshBasicMaterial({
-      color: 0xff0000,
+      color: 0x000000,
       shading: THREE.FlatShading,
       wireframe: true,
       transparent: true,
     }),
-    new THREE.MeshBasicMaterial({ color: 0xff0000 }),
+    new THREE.MeshBasicMaterial({ color: 0xfffff }),
   ]);
 
   // Setting the initial position. Center for x and y and n number for z.
   GameManager.Box.position = {
-    x: Math.floor(GameManager.gameBoxObj.segmentX / 2) - 1,
-    y: Math.floor(GameManager.gameBoxObj.segmentY / 2) - 1,
+    x: Math.floor(GameManager.gameBoxConfiguration.segmentX / 2) - 1,
+    y: Math.floor(GameManager.gameBoxConfiguration.segmentY / 2) - 1,
     z: 15,
   };
 
   GameManager.Box.mesh.position.x =
-    ((GameManager.Box.position.x - GameManager.gameBoxObj.segmentX / 2) *
-      GameManager.gameBoxSize) /
+    ((GameManager.Box.position.x -
+      GameManager.gameBoxConfiguration.segmentX / 2) *
+      GameManager.boxSize) /
     2;
   GameManager.Box.mesh.position.y =
-    ((GameManager.Box.position.y - GameManager.gameBoxObj.segmentY / 2) *
-      GameManager.BoxSize) /
+    ((GameManager.Box.position.y -
+      GameManager.gameBoxConfiguration.segmentY / 2) *
+      GameManager.boxSize) /
     2;
   GameManager.Box.mesh.position.z =
-    (GameManager.Box.position.z - GameManager.gameBoxObj.segmentZ / 2) *
-      GameManager.gameBoxSize +
-    GameManager.gameBoxSize / 2;
+    (GameManager.Box.position.z -
+      GameManager.gameBoxConfiguration.segmentZ / 2) *
+      GameManager.boxSize +
+    GameManager.boxSize / 2;
   GameManager.Box.mesh.rotation = { x: 0, y: 0, z: 0 };
   GameManager.Box.mesh.overdraw = true;
 
@@ -392,26 +378,26 @@ GameManager.Box.create = function () {
 // It's cleaner and more readable to have rotation and position separated. It will also help with collision detection.
 // Rotation function. To rotate lets use the built-in methods, and convert angles to radians.
 GameManager.Box.rotate = function (x, y, z) {
-  GameManager.Box.mesh.rotation.x += (x * Math.PI) / 180; // Convert to radians
+  GameManager.Box.mesh.rotation.x += (x * Math.PI) / 180;
   GameManager.Box.mesh.rotation.y += (y * Math.PI) / 180;
   GameManager.Box.mesh.rotation.z += (z * Math.PI) / 180;
 };
 
 // Move function.
 GameManager.Box.move = function (x, y, z) {
-  GameManager.Box.mesh.position.x += x * GameManager.gameBoxSize;
+  GameManager.Box.mesh.position.x += x * GameManager.boxSize;
   GameManager.Box.position.x += x;
 
-  GameManager.Box.mesh.position.y += y * GameManager.gameBoxSize;
+  GameManager.Box.mesh.position.y += y * GameManager.boxSize;
   GameManager.Box.position.y += y;
 
-  GameManager.Box.mesh.position.z += z * GameManager.gameBoxSize;
+  GameManager.Box.mesh.position.z += z * GameManager.boxSize;
   GameManager.Box.position.z += z;
   if (GameManager.Box.position.z == 0) GameManager.Box.landedBox(); // If the box is on the ground, call the landed function. It means it should no longer move, so we convert it to static, remove it from the scene and create a new one.
 };
 
 // Called when the box is on the ground. It will be converted to static box, remove from the scene and create a new one.
-GameManager.Box.harden = function () {
+GameManager.Box.solidify = function () {
   let shape = GameManager.Box.shape;
   for (let i = 0; i < shape.length; i++) {
     GameManager.createStaticBlocks(
@@ -423,7 +409,7 @@ GameManager.Box.harden = function () {
 };
 
 GameManager.Box.landedBox = function () {
-  GameManager.Box.harden();
+  GameManager.Box.solidify();
   GameManager.scene.removeObject(GameManager.Box.mesh);
   GameManager.Box.create();
 };
