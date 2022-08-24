@@ -11,11 +11,12 @@ import { GLTFLoader } from "https://unpkg.com/three@0.126.1/examples/jsm/loaders
 
 // Global object which will contain all the functions and variables, replicating so, the namespace in JavaScript. An example of anti-pattern, but will do for this small application.
 
-let GameManager = {};
+// let GameManager = {};
+window.GameManager = window.GameManager || {};
 
 // ######################### GAME INITIALIZATION #########################
 
-// Creating Three.js objects, and storing them in the globaj object GameManager.
+// Creating Three.js objects, and storing them in the global object GameManager.
 
 GameManager.init = function () {
   // set the scene size
@@ -51,7 +52,7 @@ GameManager.init = function () {
   let gameBoxConfiguration = {
     width: 360,
     height: 360,
-    depth: 1200, // Change the depth when accordingly when changing the Box size to it
+    depth: 1200, // Change the depth accordingly when changing the Box size to it
 
     // Number of boxes fitting inside the game box x,y,z axis
     segmentX: 6,
@@ -73,7 +74,7 @@ GameManager.init = function () {
   // ############# Creating the game box #################
   // -----------------------------------------------------
   let gameBox = new THREE.Mesh(
-    new THREE.CubeGeometry(
+    new THREE.CubeGeometry( // Since having some probems with Three modules in CDNs (some versions work and some don't.), if trying to import not only Three but other modules for controls, loaders Buffer geometry utils, etc. I will use another old version of Three that matches with no errors. Would work and match all modules if imported as node_modules but without webpack there will be issues to read multiple modules. With a newer BoxBufferGeometry, I would get triangles, so, diagonals. Using old CubeGeometry for now.
       gameBoxConfiguration.width,
       gameBoxConfiguration.height,
       gameBoxConfiguration.depth,
@@ -328,7 +329,9 @@ window.addEventListener("load", GameManager.init);
 // #################################################################
 
 window.addEventListener("keydown", function (event) {
+  console.log("keydown:", event.which)
   // switch case to check the keydown event and get the keys
+
   switch (event.which || event.keyCode) {
     case 37: // left arrow key
       GameManager.Box.move(-1, 0, 0);
@@ -349,18 +352,18 @@ window.addEventListener("keydown", function (event) {
       GameManager.Box.move(0, 0, 1);
       break;
     case 87: // w key
-      GameManager.Box.move(90, 0, 0);
+      GameManager.Box.rotate(90, 0, 0);
     case 27: // escape key
-      GameManager.Box.move(0, 0, 0);
+      GameManager.Box.rotate(0, 0, 0);
       break;
     case 65: // a key
-      GameManager.Box.move(0, 0, 90);
+      GameManager.Box.rotate(0, 0, 90);
       break;
     case 83: // s key
-      GameManager.Box.move(-90, 0, 0);
+      GameManager.Box.rotate(-90, 0, 0);
       break;
     case 68: // d key
-      GameManager.Box.move(0, 0, -90);
+      GameManager.Box.rotate(0, 0, -90);
       break;
   }
   false;
@@ -376,6 +379,15 @@ GameManager.Utils = {};
 
 GameManager.Utils.cloneVector = function (vector) {
   return { x: vector.x, y: vector.y, z: vector.z };
+};
+
+// matrix-vector multiplication can result in in decimal values. For that we need a method to round function.
+GameManager.Utils.roundVector = function (vector) {
+  vector.x = Math.round(vector.x);
+
+  vector.y = Math.round(vector.y);
+
+  vector.z = Math.round(vector.z);
 };
 
 GameManager.Box = {};
@@ -426,7 +438,7 @@ GameManager.Box.create = function () {
   let geometry, geometry2;
 
   let type = Math.floor(Math.random() * GameManager.Box.shapes.length);
-  this.BoxType = type;
+  this.boxType = type;
 
   GameManager.Box.shape = [];
   for (let i = 0; i < GameManager.Box.shapes[type].length; i++) {
@@ -509,6 +521,24 @@ GameManager.Box.rotate = function (x, y, z) {
   GameManager.Box.mesh.rotation.x += (x * Math.PI) / 180;
   GameManager.Box.mesh.rotation.y += (y * Math.PI) / 180;
   GameManager.Box.mesh.rotation.z += (z * Math.PI) / 180;
+
+  // Create a rotation matrix and multiply it with each vector of the shape to deal with Three rotation.
+  let rotationMatrix = new THREE.Matrix4();
+  rotationMatrix.setRotationFromEuler(GameManager.Box.mesh.rotation);
+
+  for (let i = 0; i < GameManager.Box.shape.length; i++) {
+    GameManager.Box.shape[i] = rotationMatrix.multiplyVector3(
+      GameManager.Utils.cloneVector(GameManager.Box.shapes[this.boxType][i])
+    );
+    GameManager.Utils.roundVector(GameManager.Box.shape[i]); // Fields is an array with integer indexes. matrix-vector multiplication can return a vector with decimal values. We create a round fucntion in GameManager.Utils to round the values.
+  }
+
+  if (
+    GameManager.Board.collisionCheckAtStart(false) ===
+    GameManager.Board.collision.floor
+  ) {
+    GameManager.Box.rotate(-x, -y, -z);
+  }
 };
 
 // Move function.
