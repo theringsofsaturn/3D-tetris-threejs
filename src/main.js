@@ -126,6 +126,13 @@ GameManager.play = function () {
   GameManager.Box.create();
   GameManager.animate(); // Will use Window.requestAnimationFrame() to call the animate() function. animate() will call the render method and then call itself again using requestAnimationFrame().
   // https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame
+
+  // Called before the boxes the boxes are displayed.
+  GameManager.Board.init(
+    gameBoxConfiguration.segmentX,
+    gameBoxConfiguration.segmentY,
+    gameBoxConfiguration.segmentZ
+  );
 };
 
 // ----------------------------------------------------------------------
@@ -222,6 +229,7 @@ GameManager.createStaticBlocks = function (x, y, z) {
 
 GameManager.init();
 
+// ################### Keyboard controls ################################
 window.addEventListener(
   "keydown",
   function (event) {
@@ -423,12 +431,19 @@ GameManager.Box.move = function (x, y, z) {
 // Called when the box is on the ground. It will be converted to static box, remove from the scene and create a new one.
 GameManager.Box.solidify = function () {
   let shape = GameManager.Box.shape;
+
   for (let i = 0; i < shape.length; i++) {
     GameManager.createStaticBlocks(
       GameManager.Box.position.x + shape[i].x,
       GameManager.Box.position.y + shape[i].y,
       GameManager.Box.position.z + shape[i].z
     );
+
+    // Store information in the array.
+    GameManager.Board.fields[GameManager.Box.position.x + shape[i].x][
+      GameManager.Box.position.y + shape[i].y
+    ][GameManager.Box.position.z + shape[i].z] =
+      GameManager.Board.field.solidified;
   }
 };
 
@@ -437,7 +452,6 @@ GameManager.Box.landedBox = function () {
   GameManager.scene.removeObject(GameManager.Box.mesh);
   GameManager.Box.create();
 };
-
 
 // ############### GLTFLoader and 3D Models ################################
 // gltf loader for loading the model.
@@ -457,3 +471,71 @@ GameManager.Box.landedBox = function () {
 //   GameManager.scene.add(roboModel);
 //   this.animate();
 // });
+
+// ---------------------------------------------------------------
+// ################# Game Board & Collision ################################
+// ---------------------------------------------------------------
+
+GameManager.Board = {};
+
+GameManager.Board.collision = { no: 0, wall: 1, floor: 2 };
+
+GameManager.Board.field = { empty: 0, active: 1, solidified: 2 };
+
+GameManager.Board.fields = [];
+
+// GameManager.Board.init will be called before the boxes are displayed in the game. We call it in the GameManager.init function.
+GameManager.Board.init = function (x, y, z) {
+  for (let i = 0; i < x; i++) {
+    GameManager.Board.fields[i] = [];
+    for (let j = 0; j < y; j++) {
+      GameManager.Board.fields[i][j] = [];
+      for (let k = 0; k < z; k++) {
+        GameManager.Board.fields[i][j][k] = GameManager.Board.field.empty;
+      }
+    }
+  }
+};
+
+// ############### Collision Detection ###############################
+
+// There are two kind of collisions. One is the wall collision (when it hits the wall or another box), and the other is the floor collision (when it hits the floor or another box).
+
+// Wall collision.
+GameManager.Board.wallCollision = function (isGrounded) {
+  let x;
+  let y;
+  let z;
+  let i;
+
+  let fields = GameManager.Board.fields;
+  let positionX = GameManager.Box.position.x;
+  let positionY = GameManager.Box.position.y;
+  let positionZ = GameManager.Box.position.z;
+  let shape = GameManager.Box.shape;
+
+  for (i = 0; i < shape.length; i++) {
+    x = positionX + shape[i].x;
+    y = positionY + shape[i].y;
+    z = positionZ + shape[i].z;
+    if (x < 0 || x >= fields.length) return GameManager.Board.collision.wall;
+    if (y < 0 || y >= fields[x].length) return GameManager.Board.collision.wall;
+    if (z < 0 || z >= fields[x][y].length)
+      return GameManager.Board.collision.wall;
+
+    // We store the solidified boxes in the array, in this way we can check if the box is intersecting with another box.
+    if (
+      fields[shape[i].x + positionX][shape[i].y + positionY][
+        shape[i].z + positionZ - 1
+      ] === GameManager.Board.field.solidified
+    ) {
+      // The collision with other boxes is detected the same way as the collision with the wall and the floor. What changes is the movement on the z axis that will hit the bottom of the box. We can use this check.
+      return isGrounded
+        ? GameManager.Board.collision.floor
+        : GameManager.Board.collision.wall;
+    }
+
+    // Need to check if the z axis position is less or equal to 0, which means the box is grounded and should not move.
+    if (shape[i].z + positionZ <= 0) return GameManager.Board.collision.floor;
+  }
+};
