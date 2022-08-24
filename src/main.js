@@ -386,6 +386,15 @@ GameManager.Box.create = function () {
     z: 15,
   };
 
+  // Do a collision check immediately after creating the shape.
+  if (
+    GameManager.Board.collisionCheckAtStart(true) ===
+    GameManager.Board.collision.floor
+  ) {
+    GameManager.gameOver = true;
+    GameManager.scoreElement.innerHTML = "Game Over";
+  }
+
   GameManager.Box.mesh.position.x =
     ((GameManager.Box.position.x -
       GameManager.gameBoxConfiguration.segmentX / 2) *
@@ -425,7 +434,19 @@ GameManager.Box.move = function (x, y, z) {
 
   GameManager.Box.mesh.position.z += z * GameManager.boxSize;
   GameManager.Box.position.z += z;
-  if (GameManager.Box.position.z == 0) GameManager.Box.landedBox(); // If the box is on the ground, call the landed function. It means it should no longer move, so we convert it to static, remove it from the scene and create a new one.
+
+  // After changing the position, do a collision check, passing info about z axis as an argument.
+  let collisionCheck = GameManager.Board.collisionCheckAtStart(z != 0);
+
+  // If there's a wall collision, move the box back. Zero for z axis because it will not be used for this check.
+  if (collisionCheck === GameManager.Board.collision.wall) {
+    GameManager.Box.move(-x, -y, 0);
+  }
+
+  if (collisionCheck === GameManager.Board.collision.floor) {
+    GameManager.Box.grounded();
+  }
+  // If the box is on the ground, call the landed function. It means it should no longer move, so we convert it to static, remove it from the scene and create a new one.
 };
 
 // Called when the box is on the ground. It will be converted to static box, remove from the scene and create a new one.
@@ -447,7 +468,7 @@ GameManager.Box.solidify = function () {
   }
 };
 
-GameManager.Box.landedBox = function () {
+GameManager.Box.grounded = function () {
   GameManager.Box.solidify();
   GameManager.scene.removeObject(GameManager.Box.mesh);
   GameManager.Box.create();
@@ -485,13 +506,13 @@ GameManager.Board.field = { empty: 0, active: 1, solidified: 2 };
 GameManager.Board.fields = [];
 
 // GameManager.Board.init will be called before the boxes are displayed in the game. We call it in the GameManager.init function.
-GameManager.Board.init = function (x, y, z) {
-  for (let i = 0; i < x; i++) {
-    GameManager.Board.fields[i] = [];
-    for (let j = 0; j < y; j++) {
-      GameManager.Board.fields[i][j] = [];
-      for (let k = 0; k < z; k++) {
-        GameManager.Board.fields[i][j][k] = GameManager.Board.field.empty;
+GameManager.Board.init = function (_x, _y, _z) {
+  for (let x = 0; x < _x; x++) {
+    GameManager.Board.fields[x] = [];
+    for (let y = 0; y < _y; y++) {
+      GameManager.Board.fields[x][y] = [];
+      for (let z = 0; z < _z; z++) {
+        GameManager.Board.fields[x][y][z] = GameManager.Board.field.empty;
       }
     }
   }
@@ -501,8 +522,7 @@ GameManager.Board.init = function (x, y, z) {
 
 // There are two kind of collisions. One is the wall collision (when it hits the wall or another box), and the other is the floor collision (when it hits the floor or another box).
 
-// Wall collision.
-GameManager.Board.wallCollision = function (isGrounded) {
+GameManager.Board.collisionCheckAtStart = function (isGrounded) {
   let x;
   let y;
   let z;
@@ -515,13 +535,14 @@ GameManager.Board.wallCollision = function (isGrounded) {
   let shape = GameManager.Box.shape;
 
   for (i = 0; i < shape.length; i++) {
-    x = positionX + shape[i].x;
-    y = positionY + shape[i].y;
-    z = positionZ + shape[i].z;
-    if (x < 0 || x >= fields.length) return GameManager.Board.collision.wall;
-    if (y < 0 || y >= fields[x].length) return GameManager.Board.collision.wall;
-    if (z < 0 || z >= fields[x][y].length)
+    if (
+      shape[i].x + positionX < 0 ||
+      shape[i].y + positionY < 0 ||
+      shape[i].x + positionX >= fields.length ||
+      shape[i].y + positionY >= fields[0].length
+    ) {
       return GameManager.Board.collision.wall;
+    }
 
     // We store the solidified boxes in the array, in this way we can check if the box is intersecting with another box.
     if (
