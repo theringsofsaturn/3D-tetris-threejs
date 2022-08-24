@@ -62,6 +62,13 @@ GameManager.init = function () {
   GameManager.boxSize =
     gameBoxConfiguration.width / gameBoxConfiguration.segmentX; // Three.js, WebGL, OpenGL have their own units that relate to meters or pixels. This formula is responsible for conversion.
 
+  // Called before the boxes the boxes are displayed.
+  GameManager.Board.init(
+    gameBoxConfiguration.segmentX,
+    gameBoxConfiguration.segmentY,
+    gameBoxConfiguration.segmentZ
+  );
+
   // -----------------------------------------------------
   // ############# Creating the game box #################
   // -----------------------------------------------------
@@ -126,13 +133,6 @@ GameManager.play = function () {
   GameManager.Box.create();
   GameManager.animate(); // Will use Window.requestAnimationFrame() to call the animate() function. animate() will call the render method and then call itself again using requestAnimationFrame().
   // https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame
-
-  // Called before the boxes the boxes are displayed.
-  GameManager.Board.init(
-    gameBoxConfiguration.segmentX,
-    gameBoxConfiguration.segmentY,
-    gameBoxConfiguration.segmentZ
-  );
 };
 
 // ----------------------------------------------------------------------
@@ -227,57 +227,144 @@ GameManager.createStaticBlocks = function (x, y, z) {
   GameManager.staticBox[x][y][z] = mesh;
 };
 
-GameManager.init();
+// GameManager.init();
+window.addEventListener("load", GameManager.init);
+
+// ############### GLTFLoader and 3D Models (Move to scene initialization when uncomment) ################################
+// gltf loader for loading the model.
+// GameManager.gltfLoader = new GLTFLoader();
+// GameManager.gltfLoader.load("robo/scene.gltf", (gltf) => {
+//   console.log("gltf model here:", gltf);
+//   const roboModel = gltf.scene;
+//   // Model scale
+//   roboModel.scale.set(900, 900, 900);
+//   // Model position
+//   roboModel.position.set(25, -60, 253.37);
+//   // Model rotation
+//   roboModel.rotation.set(0, 0.5, 0);
+//   // Model name
+//   roboModel.name = "roboModel";
+
+//   GameManager.scene.add(roboModel);
+//   this.animate();
+// });
 
 // ################### Keyboard controls ################################
-window.addEventListener(
-  "keydown",
-  function (event) {
-    let key = event.which ? event.which : event.keyCode;
+// Keyboard controls
+// Keyboard controls
+// Key name       event.which       event.key      event.code
 
-    switch (key) {
-      //case
+// backspace      8                Backspace      Backspace
+// tab            9                Tab            Tab
+// enter          13               Enter          Enter
+// shift          16                Shift          ShiftLeft
+// ctrl           17                Control        ControlLeft
+// alt(left)      18                Alt            AltLeft
+// alt(right)     18                AltRight       AltRight
+// pause          19                Pause          Pause
+// caps lock      20                CapsLock       CapsLock
+// escape         27                Escape         Escape
+// -------------------------------------------------------------
+// space          32                ""             Space        // Need this
+// -------------------------------------------------------------
+// page up        33                PageUp         PageUp
+// page down      34                PageDown       PageDown
+// end            35                End            End
+// home           36                Home           Home
+// ----------------------------------------------------------
+// left arrow     37                ArrowLeft      ArrowLeft
+// up arrow       38                ArrowUp        ArrowUp
+// right arrow    39                ArrowRight     ArrowRight  // Need these
+// down arrow     40                ArrowDown      ArrowDown
+// ----------------------------------------------------------
+// delete         46                Delete         Delete
+// 0              48                0              Digit0
+// 1              49                1              Digit1
+// 2              50                2              Digit2
+// 3              51                3              Digit3
+// 4              52                4              Digit4
+// 5              53                5              Digit5
+// 6              54                6              Digit6
+// 7              55                7              Digit7
+// 8              56                8              Digit8
+// 9              57                9              Digit9
+// ----------------------------------------------------------
+// a              65                a              KeyA       // Need this
+// ----------------------------------------------------------
+// b              66                b              KeyB
+// c              67                c              KeyC
+// ----------------------------------------------------------
+// d              68                d              KeyD     // Need these
+// e              69                e              KeyE
+// ----------------------------------------------------------
+// f              70                f              KeyF
+// g              71                g              KeyG
+// h              72                h              KeyH
+// i              73                i              KeyI
+// j              74                j              KeyJ
+// k              75                k              KeyK
+// l              76                l              KeyL
+// m              77                m              KeyM
+// n              78                n              KeyN
+// o              79                o              KeyO
+// p              80                p              KeyP
+// ----------------------------------------------------------
+// q              81                q              KeyQ     // Need this
+// ----------------------------------------------------------
+// r              82                r              KeyR
+// ----------------------------------------------------------
+// s              83                s              KeyS     // Need this
+// ----------------------------------------------------------
+// t              84                t              KeyT
+// u              85                u              KeyU
+// v              86                v              KeyV
+// ----------------------------------------------------------
+// w              87                w              KeyW       // Need this
+// ----------------------------------------------------------
+// x              88                x              KeyX
+// y              89                y              KeyY
+// z              90                z              KeyZ
 
-      case 38: // up (arrow)
-        GameManager.Box.move(0, 1, 0);
-        break;
-      case 40: // down (arrow)
-        GameManager.Box.move(0, -1, 0);
-        break;
-      case 37: // left(arrow)
-        GameManager.Box.move(-1, 0, 0);
-        break;
-      case 39: // right (arrow)
-        GameManager.Box.move(1, 0, 0);
-        break;
-      case 32: // space
-        GameManager.Box.move(0, 0, -1);
-        break;
+// #################################################################
 
-      case 87: // up (w)
-        GameManager.Box.rotate(90, 0, 0);
-        break;
-      case 83: // down (s)
-        GameManager.Box.rotate(-90, 0, 0);
-        break;
-
-      case 65: // left(a)
-        GameManager.Box.rotate(0, 0, 90);
-        break;
-      case 68: // right (d)
-        GameManager.Box.rotate(0, 0, -90);
-        break;
-
-      case 81: // (q)
-        GameManager.Box.rotate(0, 90, 0);
-        break;
-      case 69: // (e)
-        GameManager.Box.rotate(0, -90, 0);
-        break;
-    }
-  },
-  false
-);
+window.addEventListener("keydown", function (event) {
+  // switch case to check the keydown event and get the keys
+  switch (event.which || event.keyCode) {
+    case 37: // left arrow key
+      GameManager.Box.move(-1, 0, 0);
+      break;
+    case 38: // up arrow key
+      GameManager.Box.move(0, 1, 0);
+      break;
+    case 39: // right arrow key
+      GameManager.Box.move(1, 0, 0);
+      break;
+    case 40: // down arrow key
+      GameManager.Box.move(0, -1, 0);
+      break;
+    case 32: // space bar
+      GameManager.Box.move(0, 0, -1);
+      break;
+    case 13: // enter key
+      GameManager.Box.move(0, 0, 1);
+      break;
+    case 87: // w key
+      GameManager.Box.move(90, 0, 0);
+    case 27: // escape key
+      GameManager.Box.move(0, 0, 0);
+      break;
+    case 65: // a key
+      GameManager.Box.move(0, 0, 90);
+      break;
+    case 83: // s key
+      GameManager.Box.move(-90, 0, 0);
+      break;
+    case 68: // d key
+      GameManager.Box.move(0, 0, -90);
+      break;
+  }
+  false;
+});
 
 // ------------------------------------------------------------
 // ########################## SHAPES ##########################
@@ -438,7 +525,7 @@ GameManager.Box.move = function (x, y, z) {
   // After changing the position, do a collision check, passing info about z axis as an argument.
   let collisionCheck = GameManager.Board.collisionCheckAtStart(z != 0);
 
-  // If there's a wall collision, move the box back. Zero for z axis because it will not be used for this check.
+  // If there's a collision, move the box back. Zero for z axis because it will not be used for this check.
   if (collisionCheck === GameManager.Board.collision.wall) {
     GameManager.Box.move(-x, -y, 0);
   }
@@ -474,25 +561,6 @@ GameManager.Box.grounded = function () {
   GameManager.Box.create();
 };
 
-// ############### GLTFLoader and 3D Models ################################
-// gltf loader for loading the model.
-// GameManager.gltfLoader = new GLTFLoader();
-// GameManager.gltfLoader.load("robo/scene.gltf", (gltf) => {
-//   console.log("gltf model here:", gltf);
-//   const roboModel = gltf.scene;
-//   // Model scale
-//   roboModel.scale.set(900, 900, 900);
-//   // Model position
-//   roboModel.position.set(25, -60, 253.37);
-//   // Model rotation
-//   roboModel.rotation.set(0, 0.5, 0);
-//   // Model name
-//   roboModel.name = "roboModel";
-
-//   GameManager.scene.add(roboModel);
-//   this.animate();
-// });
-
 // ---------------------------------------------------------------
 // ################# Game Board & Collision ################################
 // ---------------------------------------------------------------
@@ -500,8 +568,10 @@ GameManager.Box.grounded = function () {
 GameManager.Board = {};
 
 GameManager.Board.collision = { no: 0, wall: 1, floor: 2 };
+// Object.freeze(GameManager.Board.collision);
 
 GameManager.Board.field = { empty: 0, active: 1, solidified: 2 };
+// Object.freeze(GameManager.Board.fields);
 
 GameManager.Board.fields = [];
 
@@ -509,8 +579,10 @@ GameManager.Board.fields = [];
 GameManager.Board.init = function (_x, _y, _z) {
   for (let x = 0; x < _x; x++) {
     GameManager.Board.fields[x] = [];
+
     for (let y = 0; y < _y; y++) {
       GameManager.Board.fields[x][y] = [];
+
       for (let z = 0; z < _z; z++) {
         GameManager.Board.fields[x][y][z] = GameManager.Board.field.empty;
       }
