@@ -12,13 +12,13 @@ import { GLTFLoader } from "https://unpkg.com/three@0.126.1/examples/jsm/loaders
 // Global object which will contain all the functions and variables, replicating so, the namespace in JavaScript. An example of anti-pattern, but will do for this small application.
 
 let GameManager = {};
+GameManager.sounds = {};
 
 // ######################### GAME INITIALIZATION #########################
 
 // Creating Three.js objects, and storing them in the global object GameManager.
 
 GameManager.init = function () {
-  // set the scene size
   // Fullscreen scene size
   const width = window.innerWidth;
   const height = window.innerHeight;
@@ -118,7 +118,11 @@ GameManager.init = function () {
     .addEventListener("click", function (event) {
       event.preventDefault();
       GameManager.play();
+      GameManager.sounds["theme"].play();
     });
+
+  // Music & Audio
+  GameManager.sounds["theme"] = document.getElementById("audio_theme");
 };
 
 // With the play() method: hide menu instructions, hide the 3D model Robo and show the score. Also call animate() function.
