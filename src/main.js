@@ -11,8 +11,7 @@ import { GLTFLoader } from "https://unpkg.com/three@0.126.1/examples/jsm/loaders
 
 // Global object which will contain all the functions and variables, replicating so, the namespace in JavaScript. An example of anti-pattern, but will do for this small application.
 
-// let GameManager = {};
-window.GameManager = window.GameManager || {};
+let GameManager = {};
 
 // ######################### GAME INITIALIZATION #########################
 
@@ -329,7 +328,7 @@ window.addEventListener("load", GameManager.init);
 // #################################################################
 
 window.addEventListener("keydown", function (event) {
-  console.log("keydown:", event.which)
+  console.log("keydown:", event.which);
   // switch case to check the keydown event and get the keys
 
   switch (event.which || event.keyCode) {
