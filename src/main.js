@@ -1,4 +1,18 @@
-// import Three.js modulesGLTFLoader
+import {
+  BoxBufferGeometry,
+  BufferGeometry,
+  BoxGeometry,
+  TextureLoader,
+  TextGeometry,
+  Texture,
+  PointsMaterial,
+  MeshBasicMaterial,
+  Mesh,
+  Points,
+  Scene,
+  Float32BufferAttribute,
+} from "../vendors/three/build/three.module.js";
+
 // import * as THREE from "../vendors/three/build/three.module.js";
 // import { GLTFLoader } from "../vendors/three/examples/jsm/loaders/GLTFLoader.js";
 // import * as THREE from 'https://cdn.skypack.dev/three@0.143.0/build/three.module.js';
@@ -88,6 +102,34 @@ GameManager.init = function () {
   // Rendering the scene & camera
   GameManager.renderer.render(GameManager.scene, GameManager.camera);
 
+  // -----------------------------------------------------
+  // #################### Space particles ####################
+  // ------------------------------------------------------------
+  // Geometry is deprecated and no part of the library core anymore. Have have to use BufferGeometry. However, BufferGeometry has no vertices property since vertex data are managed in form of buffer attributes.
+  // Information about this removal: https://discourse.threejs.org/t/three-geometry-will-be-removed-from-core-with-r125/22401
+  let starGeo = new BufferGeometry();
+  const vertices = [];
+
+  starGeo.setAttribute("position", new Float32BufferAttribute(vertices, 3));
+  for (let i = 0; i < 6000; i++) {
+    let star = new THREE.Vector3(
+      Math.random() * 600 - 300,
+      Math.random() * 600 - 300,
+      Math.random() * 600 - 300
+    );
+    vertices.push(star);
+  }
+
+  let sprite = new TextureLoader().load("white-circle.jfif");
+  let starMaterial = new PointsMaterial({
+    color: 0xaaaaaa,
+    size: 0.7,
+    map: sprite,
+  });
+
+  let stars = new Points(starGeo, starMaterial);
+  // GameManager.scene.add(stars);
+
   //   GLTF Loader
   // Adding some light
   const ambientLight = new THREE.AmbientLight(0x404040, 1);
@@ -118,7 +160,7 @@ GameManager.init = function () {
     .addEventListener("click", function (event) {
       event.preventDefault();
       GameManager.play();
-      GameManager.sounds["theme"].play();
+      GameManager.sounds["theme"].play(); // Play music theme.
     });
 
   // Music & Audio
