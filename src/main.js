@@ -81,7 +81,7 @@ GameManager.init = function () {
   GameManager.boxSize =
     gameBoxConfiguration.width / gameBoxConfiguration.segmentX; // Three.js, WebGL, OpenGL have their own units that relate to meters or pixels. This formula is responsible for conversion.
 
-  // Called before the boxes the boxes are displayed.
+  // Called before the boxes are displayed.
   GameManager.Board.init(
     gameBoxConfiguration.segmentX,
     gameBoxConfiguration.segmentY,
@@ -166,14 +166,18 @@ GameManager.init = function () {
     .addEventListener("click", function (event) {
       event.preventDefault();
       GameManager.play();
-      GameManager.sounds["theme"].play(); // Play music theme.
+      GameManager.sounds["theme"].play();
     });
 
   // Music & Audio
   GameManager.sounds["theme"] = document.getElementById("audio_theme");
+  GameManager.sounds["score"] = document.getElementById("audio_score");
+  GameManager.sounds["collision"] = document.getElementById("audio_collision");
+  GameManager.sounds["move"] = document.getElementById("audio_move");
+  GameManager.sounds["gameover"] = document.getElementById("audio_gameover");
 };
 
-// With the play() method: hide menu instructions, hide the 3D model Robo and show the score. Also call animate() function.
+// With the play() method: hide menu instructions, hide the 3D model Robo and show the score. Call the function to create boxes and also call animate() function.
 GameManager.play = function () {
   document.getElementById("menu").style.display = "none";
   GameManager.scoreElement = document.getElementById("score");
@@ -268,9 +272,9 @@ GameManager.createStaticBlocks = function (x, y, z) {
   );
 
   // The game box is centered at the origin (0,0,0). So, some of the cubes will have negative or positive x,y,z values. I need to specify a corner of an object and think of box positions as value from n to n.
-  // Three.hs has its own units that relate to meters or pixels. I use this formula above for the box for the conversion:  GameManager.gameBoxSize = gameBoxObj.width / gameBoxObj.segmentX
+  // Three.js has its own units that relate to meters or pixels. I use this formula above for the box for the conversion:  GameManager.gameBoxSize = gameBoxObj.width / gameBoxObj.segmentX
   // In the case below for the position: convert "n - n" to "-n - +n" (0 - 5 to -3 - +2):
-  // (x - GameManager.gameBoxObj.segmentX/2)
+  // (x - GameManager.gameBoxConfiguration.segmentX/2)
   // Then scale to Three.js units:
   // * GameManager.gameBoxSize
   // Shift position since we specify the cube center not its corner.
@@ -288,6 +292,13 @@ GameManager.createStaticBlocks = function (x, y, z) {
 
   GameManager.scene.add(mesh);
   GameManager.staticBox[x][y][z] = mesh;
+};
+
+GameManager.currentPoints = 0;
+GameManager.addPoints = function (n) {
+  GameManager.currentPoints += n;
+  GameManager.scoreElement.innerHTML = GameManager.currentPoints;
+  GameManager.sounds["score"].play();
 };
 
 // GameManager.init();
@@ -410,9 +421,6 @@ window.addEventListener("keydown", function (event) {
     case 32: // space bar
       GameManager.Box.move(0, 0, -1);
       break;
-    case 13: // enter key
-      GameManager.Box.move(0, 0, 1);
-      break;
     case 87: // w key
       GameManager.Box.rotate(90, 0, 0);
     case 27: // escape key
@@ -443,7 +451,7 @@ GameManager.Utils.cloneVector = function (vector) {
   return { x: vector.x, y: vector.y, z: vector.z };
 };
 
-// matrix-vector multiplication can result in in decimal values. For that we need a method to round function.
+// matrix-vector multiplication can result in decimal values. For that we need a method to round values.
 GameManager.Utils.roundVector = function (vector) {
   vector.x = Math.round(vector.x);
 
@@ -488,14 +496,13 @@ GameManager.Box.shapes = [
 ];
 
 // ------------------------------------------------------------------
-// Position and rotation of the shape. We use different units in the game box than Three.js. Will store the position separately ans use the built-in rotation.
+// Position and rotation of the shape. We use different units in the game box than Three.js. Will store the position separately and use the built-in rotation.
 GameManager.Box.position = {};
 
-// Function to create the shapes.
 // ---------------------------------------------------------------
 // ################# START Box.create function #################
 //----------------------------------------------------------------
-
+// Function to create the shapes.
 GameManager.Box.create = function () {
   let geometry, geometry2;
 
@@ -554,6 +561,7 @@ GameManager.Box.create = function () {
   ) {
     GameManager.gameOver = true;
     GameManager.scoreElement.innerHTML = "Game Over";
+    GameManager.sounds["gameover"].play();
   }
 
   GameManager.Box.mesh.position.x =
@@ -617,13 +625,17 @@ GameManager.Box.move = function (x, y, z) {
   // After changing the position, do a collision check, passing info about z axis as an argument.
   let collisionCheck = GameManager.Board.collisionCheckAtStart(z != 0);
 
-  // If there's a collision, move the box back. Zero for z axis because it will not be used for this check.
+  // If there's a collision with the wall or the floor, move the box back. Zero for z axis because it will not be used for this check.
   if (collisionCheck === GameManager.Board.collision.wall) {
     GameManager.Box.move(-x, -y, 0);
   }
 
   if (collisionCheck === GameManager.Board.collision.floor) {
     GameManager.Box.grounded();
+    GameManager.sounds["collision"].play();
+    GameManager.Board.checkCompleted();
+  } else {
+    GameManager.sounds["move"].play();
   }
   // If the box is on the ground, call the landed function. It means it should no longer move, so we convert it to static, remove it from the scene and create a new one.
 };
@@ -699,6 +711,7 @@ GameManager.Board.collisionCheckAtStart = function (isGrounded) {
   let shape = GameManager.Box.shape;
 
   for (i = 0; i < shape.length; i++) {
+    // Detection for the 4 faces of the box.
     if (
       shape[i].x + positionX < 0 ||
       shape[i].y + positionY < 0 ||
@@ -722,5 +735,69 @@ GameManager.Board.collisionCheckAtStart = function (isGrounded) {
 
     // Need to check if the z axis position is less or equal to 0, which means the box is grounded and should not move.
     if (shape[i].z + positionZ <= 0) return GameManager.Board.collision.floor;
+  }
+};
+
+GameManager.Board.checkCompleted = function () {
+  let x,
+    y,
+    z,
+    x2,
+    y2,
+    z2,
+    fields = GameManager.Board.fields;
+  let rebuild = false;
+
+  let sum,
+    expected = fields[0].length * fields.length,
+    bonus = 0;
+
+  for (z = 0; z < fields[0][0].length; z++) {
+    sum = 0;
+    for (y = 0; y < fields[0].length; y++) {
+      for (x = 0; x < fields.length; x++) {
+        if (fields[x][y][z] === GameManager.Board.field.solidified) sum++;
+      }
+    }
+
+    if (sum == expected) {
+      bonus += 1 + bonus;
+
+      for (y2 = 0; y2 < fields[0].length; y2++) {
+        for (x2 = 0; x2 < fields.length; x2++) {
+          for (z2 = z; z2 < fields[0][0].length - 1; z2++) {
+            GameManager.Board.fields[x2][y2][z2] = fields[x2][y2][z2 + 1];
+          }
+          GameManager.Board.fields[x2][y2][fields[0][0].length - 1] =
+            GameManager.Board.field.empty;
+        }
+      }
+      rebuild = true;
+      z--;
+    }
+  }
+  if (bonus) {
+    GameManager.addPoints(1000 * bonus);
+  }
+  if (rebuild) {
+    for (let z = 0; z < fields[0][0].length - 1; z++) {
+      for (let y = 0; y < fields[0].length; y++) {
+        for (let x = 0; x < fields.length; x++) {
+          if (
+            fields[x][y][z] === GameManager.Board.field.solidified &&
+            !GameManager.staticBlocks[x][y][z]
+          ) {
+            GameManager.addStaticBlock(x, y, z);
+          }
+          if (
+            fields[x][y][z] == GameManager.Board.field.empty &&
+            GameManager.staticBlocks[x][y][z]
+          ) {
+            GameManager.scene.removeObject(GameManager.staticBlocks[x][y][z]);
+            GameManager.staticBlocks[x][y][z] = undefined;
+          }
+        }
+      }
+    }
   }
 };
