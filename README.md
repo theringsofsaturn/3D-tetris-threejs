@@ -6,7 +6,7 @@
 
 ## 
 
-![](https://res.cloudinary.com/dqiyjy9ye/image/upload/v1661182007/random/d5_tetris_n38xfd.png)
+![](https://res.cloudinary.com/dqiyjy9ye/image/upload/v1663330643/Games/tetris_nlly4z.png)
 
 
 Time spent on this project:
