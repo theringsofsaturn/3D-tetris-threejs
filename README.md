@@ -13,6 +13,6 @@ Time spent on this project:
 
 [![wakatime](https://wakatime.com/badge/github/theringsofsaturn/tetris-js.svg)](https://wakatime.com/badge/github/theringsofsaturn/tetris-js)
 
-## <a href="https://theringsofsaturn.github.io/3D-Tetris/src/index.html" target="_blank">Click me to play!</a>
+## <a href="https://theringsofsaturn.github.io/3D-tetris-threejs/src/index.html" target="_blank">Click me to play!</a>
 
 
